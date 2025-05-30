@@ -20,6 +20,9 @@ class RealTimeChatManager {
     // Inicializar conexão
     async init() {
         try {
+            // Verificar conectividade com o servidor
+            await this.testServerConnectivity();
+            
             // Carregar Socket.io
             await this.loadSocketIO();
             
@@ -30,6 +33,32 @@ class RealTimeChatManager {
         } catch (error) {
             console.error('Erro ao inicializar chat:', error);
             this.showError('Erro ao conectar com o servidor de chat');
+        }
+    }
+
+    // Testar conectividade com o servidor
+    async testServerConnectivity() {
+        try {
+            console.log(`🔍 Testando conectividade com: ${this.serverUrl}`);
+            
+            const response = await fetch(`${this.serverUrl}/health`, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json'
+                },
+                timeout: 10000
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                console.log('✅ Servidor está funcionando:', data);
+                return true;
+            } else {
+                throw new Error(`Servidor retornou status: ${response.status}`);
+            }
+        } catch (error) {
+            console.error('❌ Falha no teste de conectividade:', error);
+            throw new Error(`Servidor não está acessível: ${error.message}`);
         }
     }
 
@@ -51,27 +80,50 @@ class RealTimeChatManager {
 
     // Conectar ao servidor
     connect() {
+        console.log(`🔌 Tentando conectar em: ${this.serverUrl}`);
+        
         this.socket = io(this.serverUrl, {
-            transports: ['websocket', 'polling']
+            transports: ['polling', 'websocket'], // Polling primeiro para melhor compatibilidade
+            timeout: 20000,
+            forceNew: true,
+            reconnection: true,
+            reconnectionDelay: 1000,
+            reconnectionAttempts: 5,
+            maxReconnectionAttempts: 5
         });
 
         // Eventos de conexão
         this.socket.on('connect', () => {
             console.log('✅ Conectado ao servidor de chat');
+            console.log('🔗 ID da conexão:', this.socket.id);
             this.isConnected = true;
             this.registerUser();
             this.updateConnectionStatus(true);
         });
 
-        this.socket.on('disconnect', () => {
-            console.log('❌ Desconectado do servidor de chat');
+        this.socket.on('disconnect', (reason) => {
+            console.log('❌ Desconectado do servidor de chat. Motivo:', reason);
             this.isConnected = false;
             this.updateConnectionStatus(false);
         });
 
         this.socket.on('connect_error', (error) => {
-            console.error('Erro de conexão:', error);
-            this.showError('Falha na conexão com o servidor');
+            console.error('❌ Erro de conexão:', error);
+            console.error('🔍 URL tentada:', this.serverUrl);
+            this.showError(`Falha na conexão: ${error.message || error}`);
+        });
+
+        this.socket.on('reconnect', (attemptNumber) => {
+            console.log(`🔄 Reconectado após ${attemptNumber} tentativas`);
+        });
+
+        this.socket.on('reconnect_error', (error) => {
+            console.error('❌ Erro na reconexão:', error);
+        });
+
+        this.socket.on('reconnect_failed', () => {
+            console.error('❌ Falha na reconexão - todas as tentativas esgotadas');
+            this.showError('Não foi possível conectar ao servidor. Recarregue a página.');
         });
 
         // Eventos de mensagens

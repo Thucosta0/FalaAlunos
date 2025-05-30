@@ -9,30 +9,63 @@ const server = http.createServer(app);
 // Configurar CORS para permitir conexões do frontend
 const io = socketIo(server, {
     cors: {
-        origin: [
-            "http://localhost:3000",
-            "https://falaalunos.onrender.com",
-            "https://*.netlify.app",
-            "https://*.github.io"
-        ],
+        origin: function (origin, callback) {
+            // Permitir requisições sem origin (apps mobile, etc)
+            if (!origin) return callback(null, true);
+            
+            // Lista de origens permitidas
+            const allowedOrigins = [
+                'http://localhost:3000',
+                'https://falaalunos.onrender.com'
+            ];
+            
+            // Verificar se a origem está na lista ou é um subdomínio permitido
+            if (allowedOrigins.includes(origin) || 
+                origin.includes('netlify.app') || 
+                origin.includes('github.io')) {
+                callback(null, true);
+            } else {
+                console.log('❌ Origem CORS rejeitada:', origin);
+                callback(new Error('Não permitido pelo CORS'));
+            }
+        },
         methods: ["GET", "POST", "PUT", "DELETE"],
         credentials: true
     },
-    transports: ['websocket', 'polling']
+    transports: ['polling', 'websocket'],
+    allowEIO3: true
 });
 
 // Configurar CORS para Express
 app.use(cors({
-    origin: [
-        "http://localhost:3000",
-        "https://falaalunos.onrender.com",
-        "https://*.netlify.app",
-        "https://*.github.io"
-    ],
+    origin: function (origin, callback) {
+        // Permitir requisições sem origin
+        if (!origin) return callback(null, true);
+        
+        const allowedOrigins = [
+            'http://localhost:3000',
+            'https://falaalunos.onrender.com'
+        ];
+        
+        if (allowedOrigins.includes(origin) || 
+            origin.includes('netlify.app') || 
+            origin.includes('github.io')) {
+            callback(null, true);
+        } else {
+            console.log('❌ Origem CORS rejeitada:', origin);
+            callback(new Error('Não permitido pelo CORS'));
+        }
+    },
     credentials: true
 }));
 
 app.use(express.json());
+
+// Middleware de log para debugging
+app.use((req, res, next) => {
+    console.log(`📝 ${req.method} ${req.path} - Origin: ${req.get('Origin') || 'N/A'}`);
+    next();
+});
 
 // Servir arquivos estáticos se executando localmente
 app.use(express.static('.'));
