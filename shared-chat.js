@@ -90,6 +90,19 @@ class RealTimeChatManager {
         this.socket.on('messagesCleared', () => {
             this.clearMessages();
         });
+
+        // Eventos para chats dinâmicos
+        this.socket.on('newChat', (chat) => {
+            this.handleNewChat(chat);
+        });
+
+        this.socket.on('chatUpdated', (chat) => {
+            this.handleChatUpdated(chat);
+        });
+
+        this.socket.on('chatDeleted', (data) => {
+            this.handleChatDeleted(data.chatId);
+        });
     }
 
     // Registrar usuário no servidor
@@ -151,6 +164,93 @@ class RealTimeChatManager {
         }
     }
 
+    // Criar novo chat
+    async createChat(chatData) {
+        try {
+            const response = await fetch(`${this.serverUrl}/api/chats`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    ...chatData,
+                    createdBy: this.userName,
+                    createdByType: this.userType
+                })
+            });
+
+            if (response.ok) {
+                const chat = await response.json();
+                console.log('Novo chat criado:', chat);
+                return chat;
+            } else {
+                throw new Error('Falha ao criar chat');
+            }
+        } catch (error) {
+            console.error('Erro ao criar chat:', error);
+            this.showError('Erro ao criar novo chat');
+            return null;
+        }
+    }
+
+    // Carregar lista de chats
+    async loadChats() {
+        try {
+            const response = await fetch(`${this.serverUrl}/api/chats`);
+            if (response.ok) {
+                const chats = await response.json();
+                return chats;
+            } else {
+                throw new Error('Falha ao carregar chats');
+            }
+        } catch (error) {
+            console.error('Erro ao carregar chats:', error);
+            return [];
+        }
+    }
+
+    // Atualizar chat
+    async updateChat(chatId, updateData) {
+        try {
+            const response = await fetch(`${this.serverUrl}/api/chats/${chatId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(updateData)
+            });
+
+            if (response.ok) {
+                const chat = await response.json();
+                return chat;
+            } else {
+                throw new Error('Falha ao atualizar chat');
+            }
+        } catch (error) {
+            console.error('Erro ao atualizar chat:', error);
+            return null;
+        }
+    }
+
+    // Excluir chat
+    async deleteChat(chatId) {
+        try {
+            const response = await fetch(`${this.serverUrl}/api/chats/${chatId}`, {
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                return result;
+            } else {
+                throw new Error('Falha ao excluir chat');
+            }
+        } catch (error) {
+            console.error('Erro ao excluir chat:', error);
+            return null;
+        }
+    }
+
     // Manipular nova mensagem
     handleNewMessage(message) {
         console.log('Nova mensagem recebida:', message);
@@ -176,6 +276,38 @@ class RealTimeChatManager {
         if (data.category === this.currentCategory && data.userId !== this.socket.id) {
             this.showTypingIndicator(data);
         }
+    }
+
+    // Manipular novo chat criado
+    handleNewChat(chat) {
+        console.log('Novo chat criado:', chat);
+        
+        // Emitir evento para interfaces específicas
+        window.dispatchEvent(new CustomEvent('newChatCreated', { 
+            detail: chat 
+        }));
+        
+        this.showNotification(`Novo chat criado: ${chat.title}`);
+    }
+
+    // Manipular chat atualizado
+    handleChatUpdated(chat) {
+        console.log('Chat atualizado:', chat);
+        
+        // Emitir evento para interfaces específicas
+        window.dispatchEvent(new CustomEvent('chatUpdated', { 
+            detail: chat 
+        }));
+    }
+
+    // Manipular chat excluído
+    handleChatDeleted(chatId) {
+        console.log('Chat excluído:', chatId);
+        
+        // Emitir evento para interfaces específicas
+        window.dispatchEvent(new CustomEvent('chatDeleted', { 
+            detail: { chatId } 
+        }));
     }
 
     // Atualizar usuários ativos

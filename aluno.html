@@ -721,6 +721,9 @@
                     <div class="chat-sidebar">
                         <div class="chat-sidebar-header">
                             <h4>Categorias de Atendimento</h4>
+                            <button class="btn btn-primary" onclick="openNewChatModal()" style="margin-top: 0.5rem; width: 100%; padding: 0.5rem; border: none; background: #667eea; color: white; border-radius: 8px; cursor: pointer; font-size: 0.8rem;">
+                                <i class="fas fa-plus"></i> Novo Chat
+                            </button>
                         </div>
                         <div class="chat-categories">
                             <div class="chat-category active" onclick="selectCategory('academic')">
@@ -940,6 +943,51 @@
         </main>
     </div>
 
+    <!-- Modal para Criar Novo Chat -->
+    <div id="newChatModal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);">
+        <div class="modal-content" style="position: relative; background: white; margin: 5% auto; padding: 0; width: 90%; max-width: 500px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+            <div class="modal-header" style="padding: 1.5rem; border-bottom: 1px solid #e9ecef; display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin: 0; color: #2c3e50;">Criar Novo Chat</h3>
+                <button onclick="closeNewChatModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #6c757d;">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 1.5rem;">
+                <form id="newChatForm">
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: #2c3e50;">Título do Chat:</label>
+                        <input type="text" id="chatTitle" required style="width: 100%; padding: 0.8rem; border: 1px solid #e9ecef; border-radius: 8px; font-size: 0.9rem;" placeholder="Ex: Dúvida sobre disciplinas">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: #2c3e50;">Categoria:</label>
+                        <select id="chatCategory" required style="width: 100%; padding: 0.8rem; border: 1px solid #e9ecef; border-radius: 8px; font-size: 0.9rem;">
+                            <option value="">Selecione uma categoria</option>
+                            <option value="academic">Suporte Acadêmico</option>
+                            <option value="administrative">Processos Administrativos</option>
+                            <option value="financial">Questões Financeiras</option>
+                            <option value="technical">Suporte Técnico</option>
+                            <option value="general">Geral</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: #2c3e50;">Prioridade:</label>
+                        <select id="chatPriority" style="width: 100%; padding: 0.8rem; border: 1px solid #e9ecef; border-radius: 8px; font-size: 0.9rem;">
+                            <option value="low">Baixa</option>
+                            <option value="medium" selected>Média</option>
+                            <option value="high">Alta</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1.5rem;">
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: #2c3e50;">Descrição/Mensagem Inicial:</label>
+                        <textarea id="chatDescription" rows="4" style="width: 100%; padding: 0.8rem; border: 1px solid #e9ecef; border-radius: 8px; font-size: 0.9rem; resize: vertical;" placeholder="Descreva sua dúvida ou solicitação..."></textarea>
+                    </div>
+                    <div class="form-actions" style="display: flex; gap: 1rem; justify-content: flex-end;">
+                        <button type="button" onclick="closeNewChatModal()" style="padding: 0.8rem 1.5rem; border: 1px solid #6c757d; background: white; color: #6c757d; border-radius: 8px; cursor: pointer;">Cancelar</button>
+                        <button type="submit" style="padding: 0.8rem 1.5rem; border: none; background: #667eea; color: white; border-radius: 8px; cursor: pointer;">Criar Chat</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script src="shared-chat.js"></script>
     <script>
         // Variáveis globais
@@ -979,6 +1027,13 @@
 
             // Mostrar seção correspondente
             document.getElementById(sectionId).classList.add('active');
+
+            // Se for a seção de chat, carregar chats dinâmicos
+            if (sectionId === 'chat') {
+                setTimeout(() => {
+                    loadDynamicChats();
+                }, 100);
+            }
         }
 
         // Selecionar categoria de chat
@@ -1025,41 +1080,18 @@
         // Enviar mensagem
         function sendMessage() {
             const input = document.getElementById('messageInput');
-            const message = input.value.trim();
+            if (!input || !window.chatManager) return;
             
+            const message = input.value.trim();
             if (!message) return;
-
-            // Adicionar mensagem do aluno
-            addMessage('sent', message, getCurrentTime());
-            input.value = '';
-
-            // Salvar mensagem
-            saveMessage(currentCategory, {
-                type: 'sent',
-                message: message,
-                timestamp: new Date().toISOString(),
-                sender: 'student',
-                senderId: studentId
-            });
-
-            // Simular resposta do coordenador após 2-5 segundos
-            setTimeout(() => {
-                showTypingIndicator();
-                setTimeout(() => {
-                    hideTypingIndicator();
-                    const response = generateCoordinatorResponse(message);
-                    addMessage('received', response, getCurrentTime());
-                    
-                    // Salvar resposta
-                    saveMessage(currentCategory, {
-                        type: 'received',
-                        message: response,
-                        timestamp: new Date().toISOString(),
-                        sender: 'coordinator',
-                        senderId: 'coord_' + currentCategory
-                    });
-                }, 2000);
-            }, Math.random() * 3000 + 1000);
+            
+            // Enviar através do chat manager (real-time)
+            const success = window.chatManager.sendMessage(currentCategory, message);
+            
+            if (success) {
+                input.value = '';
+                console.log('Mensagem enviada pelo aluno:', message);
+            }
         }
 
         // Adicionar mensagem à interface
@@ -1234,6 +1266,292 @@
                 showSection(section);
             });
         });
+
+        // Funções para gerenciar criação de chats
+        function openNewChatModal() {
+            document.getElementById('newChatModal').style.display = 'block';
+        }
+
+        function closeNewChatModal() {
+            document.getElementById('newChatModal').style.display = 'none';
+            document.getElementById('newChatForm').reset();
+        }
+
+        // Event listener para o formulário de novo chat
+        document.getElementById('newChatForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            console.log('Formulário de novo chat submetido');
+            
+            if (!window.chatManager) {
+                console.error('Chat manager não está disponível');
+                alert('Sistema de chat não está conectado');
+                return;
+            }
+
+            const chatData = {
+                title: document.getElementById('chatTitle').value,
+                category: document.getElementById('chatCategory').value,
+                priority: document.getElementById('chatPriority').value,
+                description: document.getElementById('chatDescription').value
+            };
+
+            console.log('Dados do chat a serem enviados:', chatData);
+
+            try {
+                const newChat = await window.chatManager.createChat(chatData);
+                console.log('Resposta da criação do chat:', newChat);
+                
+                if (newChat) {
+                    closeNewChatModal();
+                    showNotification('Chat criado com sucesso!');
+                    
+                    console.log('Recarregando chats dinâmicos...');
+                    // Atualizar lista de chats se estiver na seção de chat
+                    if (document.getElementById('chat').classList.contains('active')) {
+                        await loadDynamicChats();
+                    }
+                } else {
+                    console.error('Falha ao criar chat - resposta null');
+                }
+            } catch (error) {
+                console.error('Erro ao criar chat:', error);
+                alert('Erro ao criar chat. Tente novamente.');
+            }
+        });
+
+        // Função para mostrar notificação
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #27ae60;
+                color: white;
+                padding: 1rem 1.5rem;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                z-index: 10000;
+                font-size: 0.9rem;
+            `;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.remove();
+                }
+            }, 3000);
+        }
+
+        // Função para carregar chats dinâmicos
+        async function loadDynamicChats() {
+            if (!window.chatManager) return;
+
+            try {
+                const chats = await window.chatManager.loadChats();
+                console.log('Chats carregados:', chats);
+                
+                // Atualizar interface com os chats dinâmicos
+                updateChatSidebar(chats);
+                
+            } catch (error) {
+                console.error('Erro ao carregar chats:', error);
+            }
+        }
+
+        // Atualizar sidebar com chats dinâmicos
+        function updateChatSidebar(chats) {
+            const chatCategories = document.querySelector('.chat-categories');
+            if (!chatCategories) return;
+
+            // Remover chats dinâmicos existentes (manter apenas os estáticos)
+            const dynamicChats = chatCategories.querySelectorAll('.chat-category[data-dynamic="true"]');
+            dynamicChats.forEach(chat => chat.remove());
+
+            // Adicionar novos chats dinâmicos
+            chats.forEach(chat => {
+                const chatElement = document.createElement('div');
+                chatElement.className = 'chat-category';
+                chatElement.setAttribute('data-dynamic', 'true');
+                chatElement.setAttribute('data-chat-id', chat.id);
+                
+                const priorityIcon = chat.priority === 'high' ? '🔴' : chat.priority === 'medium' ? '🟡' : '🟢';
+                const categoryIcon = getCategoryIcon(chat.category);
+                
+                // Verificar se o chat foi criado pelo usuário atual
+                const canDelete = chat.createdByType === window.chatManager?.userType && 
+                                 chat.createdBy === window.chatManager?.userName;
+                
+                chatElement.innerHTML = `
+                    <div class="category-icon">
+                        <i class="fas ${categoryIcon}"></i>
+                    </div>
+                    <div class="category-info">
+                        <h4>${chat.title} ${priorityIcon}</h4>
+                        <p>Criado por ${chat.createdBy}</p>
+                        <div class="coordinator-status">
+                            <div class="status-dot online"></div>
+                            <span>${formatTimeAgo(chat.createdAt)}</span>
+                        </div>
+                    </div>
+                    ${canDelete ? `
+                        <div class="chat-actions" style="position: absolute; top: 5px; right: 5px;">
+                            <button onclick="deleteChatConfirm(${chat.id}, '${chat.title}')" style="background: #e74c3c; color: white; border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Excluir chat">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    ` : ''}
+                `;
+                
+                // Adicionar estilo de posição relativa para permitir posicionamento absoluto do botão
+                chatElement.style.position = 'relative';
+                
+                chatElement.addEventListener('click', (e) => {
+                    // Prevenir clique se clicar no botão de exclusão
+                    if (e.target.closest('.chat-actions')) return;
+                    selectDynamicChat(chat);
+                });
+                
+                chatCategories.appendChild(chatElement);
+            });
+        }
+
+        // Selecionar chat dinâmico
+        function selectDynamicChat(chat) {
+            // Remover active de todas as categorias
+            document.querySelectorAll('.chat-category').forEach(cat => {
+                cat.classList.remove('active');
+            });
+
+            // Adicionar active ao chat selecionado
+            const chatElement = document.querySelector(`[data-chat-id="${chat.id}"]`);
+            if (chatElement) {
+                chatElement.classList.add('active');
+            }
+
+            currentCategory = chat.category;
+            loadDynamicChatConversation(chat);
+        }
+
+        // Carregar conversa do chat dinâmico
+        function loadDynamicChatConversation(chat) {
+            // Atualizar header do chat
+            const contactInfo = document.querySelector('.chat-contact-info');
+            if (contactInfo) {
+                const categoryIcon = getCategoryIcon(chat.category);
+                contactInfo.innerHTML = `
+                    <div class="contact-avatar">
+                        <i class="fas ${categoryIcon}"></i>
+                    </div>
+                    <div class="contact-details">
+                        <h4>${chat.title}</h4>
+                        <div class="contact-status">
+                            <i class="fas fa-circle" style="color: #27ae60; font-size: 0.6rem;"></i>
+                            Chat criado por ${chat.createdBy} - ${chat.priority} prioridade
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Limpar mensagens e carregar do chat
+            const messagesContainer = document.getElementById('chatMessages');
+            if (messagesContainer) {
+                messagesContainer.innerHTML = `
+                    <div class="message received">
+                        <div class="message-avatar">
+                            ${getCoordinatorInitials(chat.category)}
+                        </div>
+                        <div class="message-content">
+                            <div class="message-bubble">
+                                ${chat.description || 'Chat iniciado'}
+                            </div>
+                            <div class="message-time">${formatTimeAgo(chat.createdAt)}</div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Atualizar categoria atual do chat manager
+            if (window.chatManager) {
+                window.chatManager.setCurrentCategory(chat.category);
+            }
+        }
+
+        // Obter ícone da categoria
+        function getCategoryIcon(category) {
+            const icons = {
+                academic: 'fa-graduation-cap',
+                administrative: 'fa-file-alt',
+                financial: 'fa-dollar-sign',
+                technical: 'fa-cog',
+                general: 'fa-comments'
+            };
+            return icons[category] || 'fa-comments';
+        }
+
+        // Formatar tempo relativo
+        function formatTimeAgo(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffInMinutes = Math.floor((now - date) / (1000 * 60));
+            
+            if (diffInMinutes < 1) return 'Agora';
+            if (diffInMinutes < 60) return `${diffInMinutes} min atrás`;
+            if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)} horas atrás`;
+            return `${Math.floor(diffInMinutes / 1440)} dias atrás`;
+        }
+
+        // Carregar chats dinâmicos quando a página carrega
+        window.addEventListener('load', loadDynamicChats);
+
+        // Listener para novos chats criados
+        window.addEventListener('newChatCreated', function(event) {
+            const chat = event.detail;
+            console.log('Novo chat detectado:', chat);
+            loadDynamicChats();
+        });
+
+        // Função para confirmar exclusão de chat
+        function deleteChatConfirm(chatId, chatTitle) {
+            if (confirm(`Tem certeza que deseja excluir o chat "${chatTitle}"?\n\nEsta ação não pode ser desfeita.`)) {
+                deleteChat(chatId);
+            }
+        }
+
+        // Função para excluir chat
+        async function deleteChat(chatId) {
+            if (!window.chatManager) {
+                alert('Sistema de chat não está conectado');
+                return;
+            }
+
+            try {
+                const deleted = await window.chatManager.deleteChat(chatId);
+                if (deleted) {
+                    showNotification('Chat excluído com sucesso!');
+                    
+                    // Recarregar lista de chats
+                    await loadDynamicChats();
+                    
+                    // Se o chat excluído estava selecionado, voltar para o chat padrão
+                    const activeChat = document.querySelector('.chat-category[data-dynamic="true"].active');
+                    if (!activeChat) {
+                        // Selecionar o primeiro chat estático
+                        const firstStaticChat = document.querySelector('.chat-category:not([data-dynamic])');
+                        if (firstStaticChat) {
+                            firstStaticChat.click();
+                        }
+                    }
+                } else {
+                    alert('Erro ao excluir chat. Tente novamente.');
+                }
+            } catch (error) {
+                console.error('Erro ao excluir chat:', error);
+                alert('Erro ao excluir chat. Tente novamente.');
+            }
+        }
     </script>
 </body>
 </html> 

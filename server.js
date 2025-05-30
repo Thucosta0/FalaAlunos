@@ -22,6 +22,7 @@ app.use(express.static('.'));
 
 // Armazenar mensagens em memória (em produção, use um banco de dados)
 let messages = [];
+let chats = []; // Armazenar chats dinâmicos
 let activeUsers = {
     admins: [],
     students: []
@@ -47,6 +48,81 @@ app.post('/api/messages', (req, res) => {
     io.emit('newMessage', message);
     
     res.json(message);
+});
+
+// Endpoints para gerenciar chats
+app.get('/api/chats', (req, res) => {
+    res.json(chats);
+});
+
+app.post('/api/chats', (req, res) => {
+    const chat = {
+        id: Date.now(),
+        title: req.body.title,
+        category: req.body.category || 'general',
+        description: req.body.description,
+        createdBy: req.body.createdBy,
+        createdByType: req.body.createdByType, // 'admin' ou 'student'
+        participants: req.body.participants || [],
+        status: 'active',
+        priority: req.body.priority || 'medium',
+        createdAt: new Date().toISOString(),
+        lastActivity: new Date().toISOString()
+    };
+    
+    chats.push(chat);
+    
+    // Emitir novo chat para todos os clientes
+    io.emit('newChat', chat);
+    
+    res.json(chat);
+});
+
+app.get('/api/chats/:chatId', (req, res) => {
+    const chatId = parseInt(req.params.chatId);
+    const chat = chats.find(c => c.id === chatId);
+    
+    if (!chat) {
+        return res.status(404).json({ error: 'Chat não encontrado' });
+    }
+    
+    res.json(chat);
+});
+
+app.put('/api/chats/:chatId', (req, res) => {
+    const chatId = parseInt(req.params.chatId);
+    const chatIndex = chats.findIndex(c => c.id === chatId);
+    
+    if (chatIndex === -1) {
+        return res.status(404).json({ error: 'Chat não encontrado' });
+    }
+    
+    chats[chatIndex] = {
+        ...chats[chatIndex],
+        ...req.body,
+        lastActivity: new Date().toISOString()
+    };
+    
+    // Emitir atualização do chat
+    io.emit('chatUpdated', chats[chatIndex]);
+    
+    res.json(chats[chatIndex]);
+});
+
+app.delete('/api/chats/:chatId', (req, res) => {
+    const chatId = parseInt(req.params.chatId);
+    const chatIndex = chats.findIndex(c => c.id === chatId);
+    
+    if (chatIndex === -1) {
+        return res.status(404).json({ error: 'Chat não encontrado' });
+    }
+    
+    const deletedChat = chats.splice(chatIndex, 1)[0];
+    
+    // Emitir exclusão do chat
+    io.emit('chatDeleted', { chatId: chatId });
+    
+    res.json({ message: 'Chat excluído com sucesso', chat: deletedChat });
 });
 
 // Socket.io - Comunicação em tempo real
