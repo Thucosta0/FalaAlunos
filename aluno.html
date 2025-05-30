@@ -1040,61 +1040,12 @@
                                 <i class="fas fa-plus"></i> Novo Chat
                             </button>
                         </div>
-                        <div class="chat-categories">
-                            <div class="chat-category active" onclick="selectCategory('academic')">
-                                <div class="category-icon">
-                                    <i class="fas fa-graduation-cap"></i>
-                                </div>
-                                <div class="category-info">
-                                    <h4>Suporte Acadêmico</h4>
-                                    <p>Maria Silva - Coordenadora</p>
-                                    <div class="coordinator-status">
-                                        <div class="status-dot online"></div>
-                                        <span>Online</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="chat-category" onclick="selectCategory('administrative')">
-                                <div class="category-icon">
-                                    <i class="fas fa-file-alt"></i>
-                                </div>
-                                <div class="category-info">
-                                    <h4>Processos Administrativos</h4>
-                                    <p>João Santos - Coordenador</p>
-                                    <div class="coordinator-status">
-                                        <div class="status-dot online"></div>
-                                        <span>Online</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="chat-category" onclick="selectCategory('financial')">
-                                <div class="category-icon">
-                                    <i class="fas fa-dollar-sign"></i>
-                                </div>
-                                <div class="category-info">
-                                    <h4>Questões Financeiras</h4>
-                                    <p>Carlos Lima - Coordenador</p>
-                                    <div class="coordinator-status">
-                                        <div class="status-dot away"></div>
-                                        <span>Ausente</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="chat-category" onclick="selectCategory('technical')">
-                                <div class="category-icon">
-                                    <i class="fas fa-cog"></i>
-                                </div>
-                                <div class="category-info">
-                                    <h4>Suporte Técnico</h4>
-                                    <p>Ana Costa - Coordenadora</p>
-                                    <div class="coordinator-status">
-                                        <div class="status-dot online"></div>
-                                        <span>Online</span>
-                                    </div>
-                                </div>
+                        <div class="chat-categories" id="chatCategoriesContainer">
+                            <!-- Estado vazio - usuário deve criar seus próprios chats -->
+                            <div class="empty-chat-state" style="text-align: center; padding: 2rem; color: #6c757d;">
+                                <i class="fas fa-comments" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+                                <h4 style="margin-bottom: 0.5rem; color: #2c3e50;">Nenhum chat criado</h4>
+                                <p style="font-size: 0.9rem; margin-bottom: 1rem;">Clique no botão acima para iniciar uma nova conversa com nossos coordenadores.</p>
                             </div>
                         </div>
                     </div>
@@ -1103,13 +1054,13 @@
                         <div class="chat-header">
                             <div class="chat-contact-info">
                                 <div class="contact-avatar">
-                                    <i class="fas fa-graduation-cap"></i>
+                                    <i class="fas fa-comments"></i>
                                 </div>
                                 <div class="contact-details">
-                                    <h4>Maria Silva - Suporte Acadêmico</h4>
+                                    <h4>Bem-vindo ao Sistema de Chat</h4>
                                     <div class="contact-status">
                                         <i class="fas fa-circle" style="color: #27ae60; font-size: 0.6rem;"></i>
-                                        Online - Tempo médio de resposta: 2 min
+                                        Crie um novo chat para começar a conversar
                                     </div>
                                 </div>
                             </div>
@@ -1118,13 +1069,13 @@
                         <div class="chat-messages" id="chatMessages">
                             <div class="message received">
                                 <div class="message-avatar">
-                                    MS
+                                    <i class="fas fa-robot"></i>
                                 </div>
                                 <div class="message-content">
                                     <div class="message-bubble">
-                                        Olá João! Bem-vindo ao suporte acadêmico da UniSync. Como posso ajudá-lo hoje?
+                                        Olá! Bem-vindo ao sistema de comunicação da instituição. Para começar a conversar com nossos coordenadores, clique em "Novo Chat" na barra lateral e escolha o tipo de atendimento que você precisa.
                                     </div>
-                                    <div class="message-time">14:30</div>
+                                    <div class="message-time">Agora</div>
                                 </div>
                             </div>
                         </div>
@@ -1736,8 +1687,19 @@
 
         // Inicializar chat do aluno
         function initializeStudentChat() {
-            // Definir categoria inicial
-            loadCategoryChat('academic');
+            console.log('🎓 Inicializando chat do aluno...');
+            
+            // Aguardar chat manager estar disponível
+            const waitForChatManager = setInterval(() => {
+                if (window.chatManager && window.chatManager.isOnline()) {
+                    clearInterval(waitForChatManager);
+                    
+                    // Carregar chats dinâmicos
+                    setTimeout(() => {
+                        loadDynamicChats();
+                    }, 1000);
+                }
+            }, 500);
         }
 
         // Logout
@@ -1851,59 +1813,73 @@
 
         // Atualizar sidebar com chats dinâmicos
         function updateChatSidebar(chats) {
-            const chatCategories = document.querySelector('.chat-categories');
+            const chatCategories = document.getElementById('chatCategoriesContainer');
             if (!chatCategories) return;
 
-            // Remover chats dinâmicos existentes (manter apenas os estáticos)
+            // Limpar chats dinâmicos existentes
             const dynamicChats = chatCategories.querySelectorAll('.chat-category[data-dynamic="true"]');
             dynamicChats.forEach(chat => chat.remove());
 
-            // Adicionar novos chats dinâmicos
-            chats.forEach(chat => {
-                const chatElement = document.createElement('div');
-                chatElement.className = 'chat-category';
-                chatElement.setAttribute('data-dynamic', 'true');
-                chatElement.setAttribute('data-chat-id', chat.id);
-                
-                const priorityIcon = chat.priority === 'high' ? '🔴' : chat.priority === 'medium' ? '🟡' : '🟢';
-                const categoryIcon = getCategoryIcon(chat.category);
-                
-                // Verificar se o chat foi criado pelo usuário atual
-                const canDelete = chat.createdByType === window.chatManager?.userType && 
-                                 chat.createdBy === window.chatManager?.userName;
-                
-                chatElement.innerHTML = `
-                    <div class="category-icon">
-                        <i class="fas ${categoryIcon}"></i>
-                    </div>
-                    <div class="category-info">
-                        <h4>${chat.title} ${priorityIcon}</h4>
-                        <p>Criado por ${chat.createdBy}</p>
-                        <div class="coordinator-status">
-                            <div class="status-dot online"></div>
-                            <span>${formatTimeAgo(chat.createdAt)}</span>
+            const emptyState = chatCategories.querySelector('.empty-chat-state');
+            
+            if (chats.length === 0) {
+                // Mostrar estado vazio se não há chats
+                if (emptyState) {
+                    emptyState.style.display = 'block';
+                }
+            } else {
+                // Esconder estado vazio se há chats
+                if (emptyState) {
+                    emptyState.style.display = 'none';
+                }
+
+                // Adicionar novos chats dinâmicos
+                chats.forEach(chat => {
+                    const chatElement = document.createElement('div');
+                    chatElement.className = 'chat-category';
+                    chatElement.setAttribute('data-dynamic', 'true');
+                    chatElement.setAttribute('data-chat-id', chat.id);
+                    
+                    const priorityIcon = chat.priority === 'high' ? '🔴' : chat.priority === 'medium' ? '🟡' : '🟢';
+                    const categoryIcon = getCategoryIcon(chat.category);
+                    
+                    // Verificar se o chat foi criado pelo usuário atual
+                    const canDelete = chat.createdByType === window.chatManager?.userType && 
+                                     chat.createdBy === window.chatManager?.userName;
+                    
+                    chatElement.innerHTML = `
+                        <div class="category-icon">
+                            <i class="fas ${categoryIcon}"></i>
                         </div>
-                    </div>
-                    ${canDelete ? `
-                        <div class="chat-actions" style="position: absolute; top: 5px; right: 5px;">
-                            <button onclick="deleteChatConfirm(${chat.id}, '${chat.title}')" style="background: #e74c3c; color: white; border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Excluir chat">
-                                <i class="fas fa-trash"></i>
-                            </button>
+                        <div class="category-info">
+                            <h4>${chat.title} ${priorityIcon}</h4>
+                            <p>Criado por ${chat.createdBy}</p>
+                            <div class="coordinator-status">
+                                <div class="status-dot online"></div>
+                                <span>${formatTimeAgo(chat.createdAt)}</span>
+                            </div>
                         </div>
-                    ` : ''}
-                `;
-                
-                // Adicionar estilo de posição relativa para permitir posicionamento absoluto do botão
-                chatElement.style.position = 'relative';
-                
-                chatElement.addEventListener('click', (e) => {
-                    // Prevenir clique se clicar no botão de exclusão
-                    if (e.target.closest('.chat-actions')) return;
-                    selectDynamicChat(chat);
+                        ${canDelete ? `
+                            <div class="chat-actions" style="position: absolute; top: 5px; right: 5px;">
+                                <button onclick="deleteChatConfirm(${chat.id}, '${chat.title}')" style="background: #e74c3c; color: white; border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Excluir chat">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        ` : ''}
+                    `;
+                    
+                    // Adicionar estilo de posição relativa para permitir posicionamento absoluto do botão
+                    chatElement.style.position = 'relative';
+                    
+                    chatElement.addEventListener('click', (e) => {
+                        // Prevenir clique se clicar no botão de exclusão
+                        if (e.target.closest('.chat-actions')) return;
+                        selectDynamicChat(chat);
+                    });
+                    
+                    chatCategories.appendChild(chatElement);
                 });
-                
-                chatCategories.appendChild(chatElement);
-            });
+            }
         }
 
         // Selecionar chat dinâmico
