@@ -161,6 +161,51 @@ O sistema é totalmente responsivo e funciona em:
 ✅ **Código limpo** e bem documentado  
 ✅ **Experiência fluida** para alunos e administradores  
 
+## 🚀 Como Executar
+
+### **Executar Localmente**
+
+1. **Instalar dependências**:
+```bash
+npm install
+```
+
+2. **Iniciar servidor**:
+```bash
+npm start
+```
+
+3. **Acessar sistema**:
+- Navegue para: `http://localhost:3000`
+- Escolha entre "Sou Aluno" ou "Sou Administrativo"
+
+### **Deploy em Produção**
+
+#### **Render.com (Backend)**
+1. Conecte seu repositório GitHub ao Render.com
+2. O arquivo `render.yaml` já está configurado
+3. O deploy será automático
+
+#### **Vercel/Netlify (Frontend)**
+1. Faça fork do repositório
+2. Conecte ao Vercel ou Netlify
+3. Configure build settings se necessário
+
+---
+
+## 🔧 Configurações Técnicas
+
+### **Servidor (Backend)**
+- **Tecnologia**: Node.js + Express + Socket.io
+- **Porta**: 3000 (local) / 10000 (produção)
+- **CORS**: Configurado para permitir conexões do frontend
+- **WebSocket**: Socket.io para comunicação em tempo real
+
+### **Frontend** 
+- **Tecnologias**: HTML5, CSS3, JavaScript ES6+
+- **Bibliotecas**: Chart.js, Font Awesome, Socket.io Client
+- **Responsivo**: Mobile-first design
+
 ---
 
 **Desenvolvido com ❤️ para facilitar a comunicação acadêmica** 

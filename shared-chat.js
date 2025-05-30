@@ -1,482 +1,512 @@
-// ========== SISTEMA DE CHAT COMPARTILHADO ==========
+// ========== SISTEMA DE CHAT EM TEMPO REAL ==========
 // Este arquivo gerencia a comunicação entre interfaces do aluno e coordenador
 
-class ChatManager {
+class RealTimeChatManager {
     constructor() {
         this.userType = sessionStorage.getItem('userProfile') || 'student';
         this.userId = this.generateUserId();
-        this.listeners = new Map();
-        this.isOnline = true;
+        this.userName = this.getUserName();
+        this.currentCategory = 'academic';
+        this.socket = null;
+        this.isConnected = false;
+        this.messageListeners = [];
         
-        // Inicializar sistema
+        // URL do servidor (configurar conforme ambiente)
+        this.serverUrl = window.location.hostname === 'localhost' ? 
+            'http://localhost:3000' : 
+            'https://fala-alunos-server.onrender.com'; // URL do deploy
+        
         this.init();
     }
 
-    // Inicializar sistema de chat
-    init() {
-        // Marcar usuário como online
-        this.setUserOnline();
-        
-        // Configurar sincronização em tempo real
-        this.setupRealTimeSync();
-        
-        // Configurar cleanup ao sair
-        this.setupCleanup();
-        
-        console.log(`Chat Manager iniciado - Tipo: ${this.userType}, ID: ${this.userId}`);
-    }
-
-    // Gerar ID único do usuário
-    generateUserId() {
-        const existing = sessionStorage.getItem('userId');
-        if (existing) return existing;
-        
-        const id = `${this.userType}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        sessionStorage.setItem('userId', id);
-        return id;
-    }
-
-    // Marcar usuário como online
-    setUserOnline() {
-        const onlineUsers = this.getOnlineUsers();
-        onlineUsers[this.userId] = {
-            type: this.userType,
-            lastSeen: Date.now(),
-            status: 'online'
-        };
-        localStorage.setItem('onlineUsers', JSON.stringify(onlineUsers));
-    }
-
-    // Obter usuários online
-    getOnlineUsers() {
+    // Inicializar conexão
+    async init() {
         try {
-            return JSON.parse(localStorage.getItem('onlineUsers') || '{}');
-        } catch {
-            return {};
+            // Carregar Socket.io
+            await this.loadSocketIO();
+            
+            // Conectar ao servidor
+            this.connect();
+            
+            console.log(`Chat Manager iniciado - Tipo: ${this.userType}, ID: ${this.userId}`);
+        } catch (error) {
+            console.error('Erro ao inicializar chat:', error);
+            this.showError('Erro ao conectar com o servidor de chat');
         }
     }
 
-    // Configurar sincronização em tempo real
-    setupRealTimeSync() {
-        // Atualizar status a cada 5 segundos
-        setInterval(() => {
-            if (this.isOnline) {
-                this.setUserOnline();
-                this.checkForNewMessages();
-                this.cleanupOfflineUsers();
+    // Carregar biblioteca Socket.io
+    loadSocketIO() {
+        return new Promise((resolve, reject) => {
+            if (window.io) {
+                resolve();
+                return;
             }
-        }, 5000);
 
-        // Escutar mudanças no localStorage (mensagens de outras abas/janelas)
-        window.addEventListener('storage', (e) => {
-            if (e.key && e.key.startsWith('chat_')) {
-                this.handleStorageUpdate(e);
-            }
+            const script = document.createElement('script');
+            script.src = 'https://cdn.socket.io/4.7.4/socket.io.min.js';
+            script.onload = resolve;
+            script.onerror = reject;
+            document.head.appendChild(script);
         });
     }
 
-    // Configurar cleanup ao sair
-    setupCleanup() {
-        const cleanup = () => {
-            this.setUserOffline();
+    // Conectar ao servidor
+    connect() {
+        this.socket = io(this.serverUrl, {
+            transports: ['websocket', 'polling']
+        });
+
+        // Eventos de conexão
+        this.socket.on('connect', () => {
+            console.log('✅ Conectado ao servidor de chat');
+            this.isConnected = true;
+            this.registerUser();
+            this.updateConnectionStatus(true);
+        });
+
+        this.socket.on('disconnect', () => {
+            console.log('❌ Desconectado do servidor de chat');
+            this.isConnected = false;
+            this.updateConnectionStatus(false);
+        });
+
+        this.socket.on('connect_error', (error) => {
+            console.error('Erro de conexão:', error);
+            this.showError('Falha na conexão com o servidor');
+        });
+
+        // Eventos de mensagens
+        this.socket.on('newMessage', (message) => {
+            this.handleNewMessage(message);
+        });
+
+        this.socket.on('userTyping', (data) => {
+            this.handleTypingIndicator(data);
+        });
+
+        this.socket.on('activeUsers', (users) => {
+            this.updateActiveUsers(users);
+        });
+
+        this.socket.on('messagesCleared', () => {
+            this.clearMessages();
+        });
+    }
+
+    // Registrar usuário no servidor
+    registerUser() {
+        if (!this.socket || !this.isConnected) return;
+
+        const userData = {
+            type: this.userType,
+            name: this.userName,
+            category: this.currentCategory
         };
 
-        window.addEventListener('beforeunload', cleanup);
-        window.addEventListener('unload', cleanup);
-        
-        // Cleanup periódico de usuários offline
-        setInterval(() => {
-            this.cleanupOfflineUsers();
-        }, 30000);
-    }
-
-    // Marcar usuário como offline
-    setUserOffline() {
-        const onlineUsers = this.getOnlineUsers();
-        if (onlineUsers[this.userId]) {
-            onlineUsers[this.userId].status = 'offline';
-            onlineUsers[this.userId].lastSeen = Date.now();
-            localStorage.setItem('onlineUsers', JSON.stringify(onlineUsers));
-        }
-        this.isOnline = false;
-    }
-
-    // Limpar usuários offline há mais de 2 minutos
-    cleanupOfflineUsers() {
-        const onlineUsers = this.getOnlineUsers();
-        const cutoff = Date.now() - (2 * 60 * 1000); // 2 minutos
-        
-        Object.keys(onlineUsers).forEach(userId => {
-            if (onlineUsers[userId].lastSeen < cutoff) {
-                delete onlineUsers[userId];
-            }
-        });
-        
-        localStorage.setItem('onlineUsers', JSON.stringify(onlineUsers));
+        this.socket.emit('register', userData);
     }
 
     // Enviar mensagem
     sendMessage(category, message, recipientType = null) {
+        if (!this.socket || !this.isConnected) {
+            this.showError('Não conectado ao servidor');
+            return false;
+        }
+
+        if (!message.trim()) return false;
+
         const messageData = {
-            id: this.generateMessageId(),
-            category: category,
-            message: message,
-            senderId: this.userId,
+            message: message.trim(),
+            category: category || this.currentCategory,
             senderType: this.userType,
-            recipientType: recipientType,
-            timestamp: new Date().toISOString(),
-            read: false,
-            type: this.userType === 'student' ? 'sent' : 'received'
+            recipientType: recipientType
         };
 
-        // Salvar mensagem
-        this.saveMessage(category, messageData);
-        
-        // Notificar outros usuários
-        this.notifyNewMessage(category, messageData);
-        
-        return messageData;
+        this.socket.emit('sendMessage', messageData);
+        return true;
     }
 
-    // Salvar mensagem no localStorage
-    saveMessage(category, messageData) {
-        const key = `chat_${category}`;
-        let messages = this.getMessages(category);
-        messages.push(messageData);
-        
-        // Manter apenas as últimas 100 mensagens
-        if (messages.length > 100) {
-            messages = messages.slice(-100);
-        }
-        
-        localStorage.setItem(key, JSON.stringify(messages));
-        
-        // Atualizar contador de mensagens não lidas
-        this.updateUnreadCount(category);
+    // Indicador de digitação
+    setTyping(category, isTyping) {
+        if (!this.socket || !this.isConnected) return;
+
+        this.socket.emit('typing', {
+            category: category || this.currentCategory,
+            isTyping: isTyping
+        });
     }
 
-    // Obter mensagens de uma categoria
-    getMessages(category) {
+    // Carregar mensagens de uma categoria
+    async loadMessages(category) {
         try {
-            return JSON.parse(localStorage.getItem(`chat_${category}`) || '[]');
-        } catch {
+            const response = await fetch(`${this.serverUrl}/api/messages/${category}`);
+            if (response.ok) {
+                const messages = await response.json();
+                return messages;
+            } else {
+                throw new Error('Falha ao carregar mensagens');
+            }
+        } catch (error) {
+            console.error('Erro ao carregar mensagens:', error);
             return [];
         }
     }
 
-    // Marcar mensagens como lidas
-    markMessagesAsRead(category, userId = null) {
-        const messages = this.getMessages(category);
-        let updated = false;
+    // Manipular nova mensagem
+    handleNewMessage(message) {
+        console.log('Nova mensagem recebida:', message);
         
-        messages.forEach(msg => {
-            if (!msg.read && (!userId || msg.senderId === userId)) {
-                msg.read = true;
-                updated = true;
+        // Notificar listeners
+        this.messageListeners.forEach(listener => {
+            if (typeof listener === 'function') {
+                listener(message);
             }
         });
-        
-        if (updated) {
-            localStorage.setItem(`chat_${category}`, JSON.stringify(messages));
-            this.updateUnreadCount(category);
+
+        // Mostrar notificação visual se não estiver na categoria ativa
+        if (message.category !== this.currentCategory && message.senderType !== this.userType) {
+            this.showNotification(`Nova mensagem em ${this.getCategoryName(message.category)}`);
+        }
+
+        // Atualizar interface
+        this.updateChatInterface(message);
+    }
+
+    // Manipular indicador de digitação
+    handleTypingIndicator(data) {
+        if (data.category === this.currentCategory && data.userId !== this.socket.id) {
+            this.showTypingIndicator(data);
         }
     }
 
-    // Atualizar contador de mensagens não lidas
-    updateUnreadCount(category) {
-        const messages = this.getMessages(category);
-        const unread = messages.filter(msg => 
-            !msg.read && 
-            msg.senderType !== this.userType
-        ).length;
+    // Atualizar usuários ativos
+    updateActiveUsers(users) {
+        console.log('Usuários ativos:', users);
         
-        // Salvar contador
-        const unreadCounts = this.getUnreadCounts();
-        unreadCounts[category] = unread;
-        localStorage.setItem('unreadCounts', JSON.stringify(unreadCounts));
-        
-        // Atualizar interface se houver listener
-        if (this.listeners.has('unreadUpdate')) {
-            this.listeners.get('unreadUpdate')(category, unread);
+        // Atualizar estatísticas na interface
+        const coordCard = document.querySelectorAll('.stat-card .stat-number')[1];
+        if (coordCard) {
+            coordCard.textContent = users.admins.length.toString();
+        }
+
+        // Emitir evento customizado para interfaces específicas
+        window.dispatchEvent(new CustomEvent('activeUsersUpdated', { 
+            detail: users 
+        }));
+    }
+
+    // Atualizar interface do chat
+    updateChatInterface(message) {
+        // Implementação específica por página
+        if (typeof window.updateChatMessages === 'function') {
+            window.updateChatMessages(message);
         }
     }
 
-    // Obter contadores de mensagens não lidas
-    getUnreadCounts() {
-        try {
-            return JSON.parse(localStorage.getItem('unreadCounts') || '{}');
-        } catch {
-            return {};
+    // Mostrar indicador de digitação
+    showTypingIndicator(data) {
+        const messagesContainer = document.getElementById('chatMessages');
+        if (!messagesContainer) return;
+
+        // Remover indicadores existentes
+        const existingTyping = messagesContainer.querySelector('.typing-message');
+        if (existingTyping) {
+            existingTyping.remove();
         }
-    }
 
-    // Gerar ID único para mensagem
-    generateMessageId() {
-        return `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    }
+        // Adicionar novo indicador
+        const typingDiv = document.createElement('div');
+        typingDiv.className = 'message received typing-message';
+        typingDiv.innerHTML = `
+            <div class="message-avatar">
+                <i class="fas fa-user"></i>
+            </div>
+            <div class="message-content">
+                <div class="message-bubble">
+                    <div class="typing-indicator">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+            </div>
+        `;
 
-    // Notificar nova mensagem
-    notifyNewMessage(category, messageData) {
-        // Adicionar timestamp da última atividade
-        localStorage.setItem(`lastActivity_${category}`, Date.now().toString());
-        
-        // Disparar evento customizado
-        const event = new CustomEvent('newMessage', {
-            detail: { category, messageData }
-        });
-        window.dispatchEvent(event);
-    }
+        messagesContainer.appendChild(typingDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
-    // Verificar novas mensagens
-    checkForNewMessages() {
-        const categories = ['academic', 'administrative', 'financial', 'technical'];
-        
-        categories.forEach(category => {
-            const lastCheck = parseInt(sessionStorage.getItem(`lastCheck_${category}`) || '0');
-            const lastActivity = parseInt(localStorage.getItem(`lastActivity_${category}`) || '0');
-            
-            if (lastActivity > lastCheck) {
-                // Há nova atividade
-                sessionStorage.setItem(`lastCheck_${category}`, Date.now().toString());
-                
-                if (this.listeners.has('newMessage')) {
-                    this.listeners.get('newMessage')(category);
-                }
-            }
-        });
-    }
-
-    // Manipular atualizações do localStorage
-    handleStorageUpdate(e) {
-        if (e.key.startsWith('chat_')) {
-            const category = e.key.replace('chat_', '');
-            
-            // Verificar se há mensagens novas
-            if (e.newValue !== e.oldValue) {
-                this.updateUnreadCount(category);
-                
-                if (this.listeners.has('messageUpdate')) {
-                    this.listeners.get('messageUpdate')(category);
-                }
-            }
-        }
-    }
-
-    // Adicionar listener para eventos
-    addEventListener(event, callback) {
-        this.listeners.set(event, callback);
-    }
-
-    // Remover listener
-    removeEventListener(event) {
-        this.listeners.delete(event);
-    }
-
-    // Obter estatísticas do chat
-    getChatStats() {
-        const categories = ['academic', 'administrative', 'financial', 'technical'];
-        const onlineUsers = this.getOnlineUsers();
-        
-        const stats = {
-            totalMessages: 0,
-            unreadMessages: 0,
-            onlineCoordinators: 0,
-            onlineStudents: 0,
-            categories: {}
-        };
-        
-        // Contar usuários online
-        Object.values(onlineUsers).forEach(user => {
-            if (user.status === 'online') {
-                if (user.type === 'admin') {
-                    stats.onlineCoordinators++;
-                } else if (user.type === 'student') {
-                    stats.onlineStudents++;
-                }
-            }
-        });
-        
-        // Contar mensagens por categoria
-        categories.forEach(category => {
-            const messages = this.getMessages(category);
-            const unread = this.getUnreadCounts()[category] || 0;
-            
-            stats.categories[category] = {
-                total: messages.length,
-                unread: unread,
-                lastActivity: localStorage.getItem(`lastActivity_${category}`)
-            };
-            
-            stats.totalMessages += messages.length;
-            stats.unreadMessages += unread;
-        });
-        
-        return stats;
-    }
-
-    // Simular resposta automática (para demonstração)
-    simulateCoordinatorResponse(category, originalMessage) {
-        if (this.userType !== 'student') return;
-        
+        // Remover após 3 segundos
         setTimeout(() => {
-            const response = this.generateAutoResponse(originalMessage, category);
-            
-            const responseData = {
-                id: this.generateMessageId(),
-                category: category,
-                message: response,
-                senderId: `coord_${category}`,
-                senderType: 'admin',
-                recipientType: 'student',
-                timestamp: new Date().toISOString(),
-                read: false,
-                type: 'received'
-            };
-            
-            this.saveMessage(category, responseData);
-            this.notifyNewMessage(category, responseData);
-            
-        }, Math.random() * 4000 + 2000); // 2-6 segundos
-    }
-
-    // Gerar resposta automática
-    generateAutoResponse(message, category) {
-        const responses = {
-            academic: {
-                default: [
-                    'Olá! Recebemos sua dúvida sobre questões acadêmicas. Vou analisar e responder em breve.',
-                    'Entendi sua questão. Vou verificar os detalhes em nosso sistema acadêmico.',
-                    'Obrigada por entrar em contato. Vou consultar as informações necessárias para ajudá-lo.'
-                ],
-                matricula: [
-                    'Sobre matrícula: O período será de 15 a 20 de dezembro. Instruções detalhadas serão enviadas por email.',
-                    'Para a matrícula, acesse o portal acadêmico na data informada com suas credenciais.',
-                    'Sua prioridade é baseada no CR. Estudantes com melhor desempenho têm preferência.'
-                ],
-                notas: [
-                    'Suas notas são atualizadas automaticamente após lançamento pelos professores.',
-                    'Para contestar uma nota, você tem 5 dias úteis após a publicação.',
-                    'Verifique o boletim online para acompanhar suas notas em tempo real.'
-                ],
-                historico: [
-                    'Histórico escolar pode ser solicitado pelo portal. Processamento em até 5 dias úteis.',
-                    'Para urgências, compareça na secretaria com RG e comprovante de matrícula.',
-                    'O histórico digital ficará disponível em sua área do aluno.'
-                ]
-            },
-            administrative: {
-                default: [
-                    'Olá! Seu processo administrativo foi recebido. Vou verificar o status para você.',
-                    'Obrigado por entrar em contato. Vou analisar seu caso e retornar em breve.',
-                    'Recebemos sua solicitação. Estou verificando os procedimentos necessários.'
-                ]
-            },
-            financial: {
-                default: [
-                    'Olá! Questões financeiras são importantes. Vou verificar sua situação no sistema.',
-                    'Recebemos sua dúvida financeira. Aguarde enquanto consulto seu histórico.',
-                    'Obrigado pelo contato. Vou analisar sua situação financeira detalhadamente.'
-                ]
-            },
-            technical: {
-                default: [
-                    'Olá! Problemas técnicos podem ser frustrantes. Vou te ajudar a resolver.',
-                    'Recebemos seu problema técnico. Vou diagnosticar a situação.',
-                    'Suporte técnico ativo! Vou analisar o problema e fornecer uma solução.'
-                ]
+            if (typingDiv.parentNode) {
+                typingDiv.remove();
             }
-        };
-        
-        const categoryResponses = responses[category] || responses.academic;
-        const msgLower = message.toLowerCase();
-        
-        // Detectar palavras-chave específicas
-        if (msgLower.includes('matrícula') || msgLower.includes('matricula')) {
-            return categoryResponses.matricula?.[0] || categoryResponses.default[0];
-        }
-        if (msgLower.includes('nota') || msgLower.includes('prova') || msgLower.includes('boletim')) {
-            return categoryResponses.notas?.[0] || categoryResponses.default[0];
-        }
-        if (msgLower.includes('histórico') || msgLower.includes('historico')) {
-            return categoryResponses.historico?.[0] || categoryResponses.default[0];
-        }
-        
-        // Resposta padrão aleatória
-        const defaultResponses = categoryResponses.default;
-        return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
+        }, 3000);
     }
 
-    // Limpar dados do chat (para desenvolvimento)
-    clearAllData() {
-        const keys = Object.keys(localStorage);
-        keys.forEach(key => {
-            if (key.startsWith('chat_') || 
-                key.startsWith('lastActivity_') || 
-                key === 'onlineUsers' || 
-                key === 'unreadCounts') {
-                localStorage.removeItem(key);
+    // Limpar mensagens
+    clearMessages() {
+        const messagesContainer = document.getElementById('chatMessages');
+        if (messagesContainer) {
+            messagesContainer.innerHTML = '<div class="message-date">Mensagens limpas</div>';
+        }
+    }
+
+    // Adicionar listener para mensagens
+    addMessageListener(callback) {
+        this.messageListeners.push(callback);
+    }
+
+    // Atualizar status de conexão na interface
+    updateConnectionStatus(isConnected) {
+        const statusElements = document.querySelectorAll('.connection-status');
+        statusElements.forEach(element => {
+            element.className = `connection-status ${isConnected ? 'connected' : 'disconnected'}`;
+            element.textContent = isConnected ? 'Conectado' : 'Desconectado';
+        });
+    }
+
+    // Gerar ID único do usuário
+    generateUserId() {
+        let userId = sessionStorage.getItem('chatUserId');
+        if (!userId) {
+            userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            sessionStorage.setItem('chatUserId', userId);
+        }
+        return userId;
+    }
+
+    // Obter nome do usuário
+    getUserName() {
+        if (this.userType === 'admin') {
+            return 'Administrador';
+        } else {
+            return sessionStorage.getItem('studentName') || 'Aluno';
+        }
+    }
+
+    // Obter nome da categoria
+    getCategoryName(category) {
+        const categoryNames = {
+            academic: 'Suporte Acadêmico',
+            administrative: 'Processos Administrativos',
+            financial: 'Questões Financeiras',
+            technical: 'Suporte Técnico',
+            general: 'Informações Gerais'
+        };
+        return categoryNames[category] || category;
+    }
+
+    // Mostrar notificação
+    showNotification(message) {
+        const notification = document.createElement('div');
+        notification.className = 'chat-notification';
+        notification.innerHTML = `
+            <i class="fas fa-comment"></i>
+            <span>${message}</span>
+            <button onclick="this.parentElement.remove()">×</button>
+        `;
+
+        notification.style.cssText = `
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            background: #667eea;
+            color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            animation: slideInRight 0.3s ease;
+            max-width: 300px;
+        `;
+
+        document.body.appendChild(notification);
+
+        setTimeout(() => {
+            if (notification.parentElement) {
+                notification.remove();
             }
-        });
-        console.log('Dados do chat limpos');
+        }, 5000);
     }
 
-    // Exportar dados do chat
-    exportChatData() {
-        const categories = ['academic', 'administrative', 'financial', 'technical'];
-        const data = {
-            timestamp: new Date().toISOString(),
-            stats: this.getChatStats(),
-            messages: {}
-        };
+    // Mostrar erro
+    showError(message) {
+        console.error('Chat Error:', message);
         
-        categories.forEach(category => {
-            data.messages[category] = this.getMessages(category);
-        });
-        
-        return data;
+        const errorNotification = document.createElement('div');
+        errorNotification.innerHTML = `
+            <i class="fas fa-exclamation-triangle"></i>
+            <span>${message}</span>
+            <button onclick="this.parentElement.remove()">×</button>
+        `;
+
+        errorNotification.style.cssText = `
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            background: #e74c3c;
+            color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            max-width: 300px;
+        `;
+
+        document.body.appendChild(errorNotification);
+
+        setTimeout(() => {
+            if (errorNotification.parentElement) {
+                errorNotification.remove();
+            }
+        }, 8000);
     }
 
-    // Status de conexão
-    getConnectionStatus() {
-        return {
-            isOnline: this.isOnline,
-            userId: this.userId,
-            userType: this.userType,
-            lastSeen: Date.now(),
-            stats: this.getChatStats()
-        };
+    // Desconectar
+    disconnect() {
+        if (this.socket) {
+            this.socket.disconnect();
+            this.socket = null;
+            this.isConnected = false;
+        }
+    }
+
+    // Verificar se está conectado
+    isOnline() {
+        return this.isConnected && this.socket && this.socket.connected;
+    }
+
+    // Definir categoria atual
+    setCurrentCategory(category) {
+        this.currentCategory = category;
     }
 }
 
-// Instância global do gerenciador de chat
+// Instância global do chat manager
 let chatManager = null;
 
-// Inicializar quando o DOM estiver pronto
+// Inicializar quando a página carregar
 document.addEventListener('DOMContentLoaded', function() {
-    // Só inicializar se estivermos numa página que precisa do chat
+    // Verificar se deve inicializar o chat
     const userProfile = sessionStorage.getItem('userProfile');
-    if (userProfile && (userProfile === 'student' || userProfile === 'admin')) {
-        chatManager = new ChatManager();
+    
+    if (userProfile === 'admin' || userProfile === 'student') {
+        chatManager = new RealTimeChatManager();
         
-        // Expor globalmente para debug
+        // Disponibilizar globalmente
         window.chatManager = chatManager;
         
-        console.log('Sistema de chat inicializado:', chatManager.getConnectionStatus());
+        console.log('🚀 Chat em tempo real inicializado');
     }
 });
 
-// Função auxiliar para debug
-function debugChat() {
+// Limpar ao sair da página
+window.addEventListener('beforeunload', function() {
     if (chatManager) {
-        console.log('=== DEBUG DO CHAT ===');
-        console.log('Status:', chatManager.getConnectionStatus());
-        console.log('Estatísticas:', chatManager.getChatStats());
-        console.log('Usuários online:', chatManager.getOnlineUsers());
-        console.log('Mensagens não lidas:', chatManager.getUnreadCounts());
-    } else {
-        console.log('Chat manager não inicializado');
+        chatManager.disconnect();
+    }
+});
+
+// Função global para enviar mensagem (compatibilidade)
+function sendMessage() {
+    const input = document.getElementById('messageInput');
+    if (!input || !chatManager) return;
+    
+    const message = input.value.trim();
+    if (!message) return;
+    
+    // Enviar através do chat manager
+    const success = chatManager.sendMessage(chatManager.currentCategory, message);
+    
+    if (success) {
+        input.value = '';
+        
+        // Adicionar à interface imediatamente (otimização UI)
+        addMessageToInterface({
+            message: message,
+            senderType: chatManager.userType,
+            senderName: chatManager.userName,
+            timestamp: new Date().toISOString()
+        });
     }
 }
 
-// Expor função de debug globalmente
-window.debugChat = debugChat; 
+// Função para adicionar mensagem à interface
+function addMessageToInterface(messageData) {
+    const messagesContainer = document.getElementById('chatMessages');
+    if (!messagesContainer) return;
+    
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${messageData.senderType === chatManager.userType ? 'sent' : 'received'}`;
+    
+    const time = new Date(messageData.timestamp).toLocaleTimeString('pt-BR', {
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+    
+    if (messageData.senderType === chatManager.userType) {
+        messageDiv.innerHTML = `
+            <div class="message-content">
+                <div class="message-bubble">${messageData.message}</div>
+                <div class="message-time">${time}</div>
+            </div>
+        `;
+    } else {
+        messageDiv.innerHTML = `
+            <div class="message-avatar">
+                <i class="fas fa-user"></i>
+            </div>
+            <div class="message-content">
+                <div class="message-bubble">${messageData.message}</div>
+                <div class="message-time">${time}</div>
+            </div>
+        `;
+    }
+    
+    messagesContainer.appendChild(messageDiv);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+// Função para atualizar mensagens do chat (callback global)
+window.updateChatMessages = function(message) {
+    addMessageToInterface(message);
+};
+
+// Gerenciar indicador de digitação no input
+let typingTimer = null;
+
+// Adicionar listener para input de mensagem
+document.addEventListener('DOMContentLoaded', function() {
+    const messageInput = document.getElementById('messageInput');
+    if (messageInput && chatManager) {
+        messageInput.addEventListener('input', function() {
+            if (!chatManager.isOnline()) return;
+            
+            // Indicar que está digitando
+            chatManager.setTyping(chatManager.currentCategory, true);
+            
+            // Limpar timer anterior
+            if (typingTimer) {
+                clearTimeout(typingTimer);
+            }
+            
+            // Parar de indicar digitação após 2 segundos
+            typingTimer = setTimeout(() => {
+                chatManager.setTyping(chatManager.currentCategory, false);
+            }, 2000);
+        });
+        
+        messageInput.addEventListener('blur', function() {
+            if (chatManager.isOnline()) {
+                chatManager.setTyping(chatManager.currentCategory, false);
+            }
+        });
+    }
+}); 
