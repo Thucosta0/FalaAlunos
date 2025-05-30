@@ -992,6 +992,7 @@
     </div>
 
     <!-- Script do Chat Manager (deve vir antes do script principal) -->
+    <script src="script.js"></script>
     <script src="shared-chat.js"></script>
     
     <script>
@@ -1779,17 +1780,6 @@
     // Gerar ID único
     function generateId() {
         return 'pos_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-    }
-
-    // Atualizar contadores de tarefas
-    function updateTaskCounts() {
-        document.querySelectorAll('.kanban-column').forEach(column => {
-            const taskCount = column.querySelectorAll('.kanban-card').length;
-            const countElement = column.querySelector('.task-count');
-            if (countElement) {
-                countElement.textContent = taskCount;
-            }
-        });
     }
 
     </script>
