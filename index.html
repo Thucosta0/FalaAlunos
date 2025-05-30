@@ -2258,6 +2258,61 @@
         // Implementação básica do admin chat
         console.log('Admin chat inicializado');
     }
+
+    // ========== FUNÇÕES DE DEBUG ==========
+    
+    // Função para testar se os cliques estão funcionando
+    window.testAdminClicks = function() {
+        console.log('🧪 Testando funcionalidade de cliques...');
+        
+        // Testar links de navegação
+        const navLinks = document.querySelectorAll('.nav-link');
+        console.log(`📊 Encontrados ${navLinks.length} links de navegação`);
+        
+        navLinks.forEach((link, index) => {
+            const section = link.getAttribute('data-section');
+            console.log(`Link ${index + 1}: ${section} - Tem event listener: ${getEventListeners ? 'Sim' : 'Não'})`);
+        });
+        
+        // Testar botões
+        const buttons = document.querySelectorAll('button');
+        console.log(`🔘 Encontrados ${buttons.length} botões na página`);
+        
+        // Testar se ChatManager está disponível
+        console.log(`💬 ChatManager disponível: ${window.ChatManager ? 'Sim' : 'Não'}`);
+        console.log(`💬 chatManager instância: ${window.chatManager ? 'Sim' : 'Não'}`);
+        
+        if (window.chatManager) {
+            console.log(`🔗 Chat Manager conectado: ${window.chatManager.isOnline ? window.chatManager.isOnline() : 'Método não disponível'}`);
+        }
+        
+        return {
+            navLinks: navLinks.length,
+            buttons: buttons.length,
+            chatManagerClass: !!window.ChatManager,
+            chatManagerInstance: !!window.chatManager
+        };
+    };
+    
+    // Função para forçar navegação manual
+    window.forceNavigate = function(section) {
+        console.log(`🔧 Forçando navegação para: ${section}`);
+        switchSection(section);
+    };
+    
+    // Função para testar mensagem manual
+    window.testMessage = function() {
+        const testMessage = {
+            content: 'Mensagem de teste do admin',
+            message: 'Mensagem de teste do admin', // Compatibilidade
+            senderType: 'student',
+            timestamp: new Date().toISOString(),
+            id: Date.now()
+        };
+        
+        console.log('🧪 Testando adição de mensagem:', testMessage);
+        addMessageToInterface(testMessage);
+    };
     </script>
 </body>
 </html> 
