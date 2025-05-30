@@ -10,54 +10,10 @@ let tasks = [];
 let currentEditingUser = null;
 let currentTaskColumn = null;
 
-// Dados do chat
-let chats = [
-    {
-        id: 1,
-        title: 'Suporte Acadêmico',
-        category: 'academic',
-        coordinator: 'Maria Silva',
-        status: 'online',
-        lastMessage: 'Dúvida sobre matrícula em disciplinas',
-        timestamp: new Date(),
-        messages: [
-            {
-                id: 1,
-                type: 'received',
-                message: 'Olá! Bem-vindo ao suporte acadêmico da UniSync. Como posso ajudá-lo hoje?',
-                timestamp: new Date(Date.now() - 10 * 60000),
-                sender: 'Maria Silva'
-            },
-            {
-                id: 2,
-                type: 'sent',
-                message: 'Olá! Tenho dúvidas sobre o processo de matrícula em disciplinas optativas. Poderia me ajudar?',
-                timestamp: new Date(Date.now() - 8 * 60000),
-                sender: 'Você'
-            }
-        ]
-    },
-    {
-        id: 2,
-        title: 'Processos Administrativos',
-        category: 'administrative',
-        coordinator: 'João Santos',
-        status: 'online',
-        lastMessage: 'Solicitação de histórico escolar',
-        timestamp: new Date(Date.now() - 5 * 60000)
-    },
-    {
-        id: 3,
-        title: 'Canal de Sugestões',
-        category: 'suggestions',
-        coordinator: 'Ana Costa',
-        status: 'away',
-        lastMessage: 'Ideias para melhoria do sistema',
-        timestamp: new Date(Date.now() - 60 * 60000)
-    }
-];
+// Dados do chat - Array vazio para que usuários criem seus próprios chats
+let chats = [];
 
-let currentChatId = 1;
+let currentChatId = null;
 
 // Inicialização
 document.addEventListener('DOMContentLoaded', function() {
@@ -778,7 +734,45 @@ document.addEventListener('DOMContentLoaded', function() {
 function initializeChat() {
     initializeChatEvents();
     renderChatList();
-    loadChat(currentChatId);
+    
+    // Só carregar chat se houver chats disponíveis e currentChatId for válido
+    if (chats.length > 0 && currentChatId && chats.find(c => c.id === currentChatId)) {
+        loadChat(currentChatId);
+    } else {
+        // Mostrar estado inicial vazio
+        showEmptyChatState();
+    }
+}
+
+// Mostrar estado vazio no chat principal
+function showEmptyChatState() {
+    const messagesContainer = document.getElementById('chatMessages');
+    if (messagesContainer) {
+        messagesContainer.innerHTML = `
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; color: #6c757d; padding: 2rem;">
+                <i class="fas fa-comments" style="font-size: 4rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+                <h3 style="margin-bottom: 0.5rem; color: #2c3e50;">Nenhuma conversa selecionada</h3>
+                <p style="margin-bottom: 1rem;">Selecione um chat na barra lateral ou aguarde que um aluno inicie uma conversa.</p>
+                <p style="font-size: 0.9rem; color: #adb5bd;">Os chats criados pelos alunos aparecerão na lista ao lado.</p>
+            </div>
+        `;
+    }
+    
+    // Atualizar header para estado vazio
+    const contactInfo = document.querySelector('.chat-contact-info');
+    if (contactInfo) {
+        contactInfo.innerHTML = `
+            <div class="contact-avatar">
+                <i class="fas fa-comments"></i>
+            </div>
+            <div class="contact-details">
+                <h4>Sistema de Chat</h4>
+                <span class="contact-status">
+                    <i class="fas fa-circle online"></i> Sistema online - Aguardando conversas
+                </span>
+            </div>
+        `;
+    }
 }
 
 // Eventos do chat
@@ -829,10 +823,22 @@ function renderChatList() {
     const chatList = document.getElementById('chatList');
     chatList.innerHTML = '';
 
-    chats.forEach(chat => {
-        const chatItem = createChatItem(chat);
-        chatList.appendChild(chatItem);
-    });
+    if (chats.length === 0) {
+        // Mostrar estado vazio
+        chatList.innerHTML = `
+            <div class="empty-chat-state" style="text-align: center; padding: 2rem; color: #6c757d;">
+                <i class="fas fa-comments" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+                <h4 style="margin-bottom: 0.5rem; color: #2c3e50;">Nenhum chat ativo</h4>
+                <p style="font-size: 0.9rem; margin-bottom: 1rem;">Os chats criados pelos alunos aparecerão aqui.</p>
+                <p style="font-size: 0.8rem; color: #adb5bd;">Aguarde que um aluno inicie uma conversa ou use o botão "Novo Chat" acima.</p>
+            </div>
+        `;
+    } else {
+        chats.forEach(chat => {
+            const chatItem = createChatItem(chat);
+            chatList.appendChild(chatItem);
+        });
+    }
 }
 
 // Criar item da lista de conversa
