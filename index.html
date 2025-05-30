@@ -1167,106 +1167,176 @@
     <script>
     // Variáveis globais
     let currentSection = 'dashboard';
+    let adminChatInitialized = false;
 
-    // Inicializar Chat Manager para Admin
-    window.addEventListener('DOMContentLoaded', function() {
-        // Configurar chat manager para admin
-        if (window.ChatManager) {
-            window.chatManager = new ChatManager('admin', 'Administrador');
-            
-            // Conectar ao servidor
-            window.chatManager.connect();
-            
-            // Adicionar listeners para novas mensagens
-            window.chatManager.onNewMessage((message) => {
-                console.log('Nova mensagem recebida no admin:', message);
-                addMessageToInterface(message);
-            });
-            
-            console.log('✅ Chat Manager inicializado para administrador');
-        }
+    // ========== INICIALIZAÇÃO PRINCIPAL ==========
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('🚀 Iniciando sistema administrativo...');
+        
+        // Verificar autenticação
+        if (!validateAdminAuth()) return;
+
+        // Inicializar componentes básicos
+        initializeBasicComponents();
+        
+        // Inicializar chat administrativo
+        initializeAdminChatSystem();
+        
+        console.log('✅ Sistema administrativo inicializado com sucesso');
     });
 
-    // Inicialização
-    document.addEventListener('DOMContentLoaded', function() {
-        // Verificar se está logado como administrativo E com credenciais válidas
+    // Validar autenticação administrativa
+    function validateAdminAuth() {
         const userProfile = sessionStorage.getItem('userProfile');
         const adminCredentials = sessionStorage.getItem('adminCredentials');
         
         if (userProfile !== 'admin' || adminCredentials !== 'validated') {
-            // Redirecionar para login se não estiver autenticado adequadamente
             sessionStorage.removeItem('userProfile');
             sessionStorage.removeItem('adminCredentials');
             sessionStorage.removeItem('loginTime');
             window.location.href = 'login.html';
-            return;
+            return false;
         }
+        return true;
+    }
 
+    // Inicializar componentes básicos
+    function initializeBasicComponents() {
         initializeNavigation();
         initializeCharts();
         initializeDragAndDrop();
         initializeSearch();
         initializeModals();
         updateTaskCounts();
-        initializeChat();
-        initializeEditTaskModal();
-        initializeAdminChat();
+        setupNewChatForm();
+    }
+
+    // ========== SISTEMA DE CHAT ADMINISTRATIVO ==========
+    function initializeAdminChatSystem() {
+        if (adminChatInitialized) {
+            console.log('⚠️ Chat administrativo já foi inicializado');
+            return;
+        }
+
+        console.log('📱 Inicializando sistema de chat administrativo...');
         
-        // Aguardar chat manager estar disponível e restaurar estado
-        const waitForChatManager = setInterval(() => {
-            if (window.chatManager && window.chatManager.isOnline()) {
-                clearInterval(waitForChatManager);
+        // Aguardar ChatManager estar disponível
+        const checkChatManager = setInterval(() => {
+            if (window.ChatManager) {
+                clearInterval(checkChatManager);
                 
-                // Restaurar estado do chat após conexão
-                setTimeout(() => {
-                    if (window.restoreChatState) {
-                        window.restoreChatState();
+                // Inicializar o ChatManager
+                window.chatManager = new ChatManager('admin', 'Administrador');
+                
+                // Conectar ao servidor
+                window.chatManager.connect();
+                
+                // Configurar listeners
+                window.chatManager.onNewMessage((message) => {
+                    console.log('Nova mensagem recebida no admin:', message);
+                    addMessageToInterface(message);
+                });
+                
+                console.log('✅ Chat Manager inicializado para administrador');
+                
+                // Aguardar conexão
+                const waitForConnection = setInterval(() => {
+                    if (window.chatManager && window.chatManager.isOnline()) {
+                        clearInterval(waitForConnection);
+                        console.log('🔄 Chat Manager conectado, configurando admin...');
+                        
+                        // Carregar chats após conexão
+                        setTimeout(() => {
+                            loadAdminChats();
+                            setupChatNavigation();
+                        }, 1000);
                     }
-                }, 1000);
+                }, 500);
+                
+                adminChatInitialized = true;
             }
-        }, 500);
-    });
+        }, 100);
+    }
 
-    // ========== FUNÇÃO SENDMESSAGE PARA ADMIN ==========
-    
-    function sendMessage() {
-        const messageInput = document.getElementById('messageInput');
-        if (!messageInput || !window.chatManager) return;
-        
-        const content = messageInput.value.trim();
-        if (!content) return;
-        
-        // Enviar mensagem através do chat manager
-        const success = window.chatManager.sendMessage(content);
-        
-        if (success) {
-            messageInput.value = '';
-            showAdminNotification('Mensagem enviada!', 'success');
-        } else {
-            showAdminNotification('Erro ao enviar mensagem', 'error');
+    // Configurar navegação do chat
+    function setupChatNavigation() {
+        // Listener para navegação entre chats
+        document.addEventListener('keydown', function(event) {
+            if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') return;
+            if (currentSection !== 'chat') return;
+            if (!window.chatManager) return;
+            
+            switch(event.key) {
+                case 'ArrowUp':
+                    if (event.ctrlKey) {
+                        event.preventDefault();
+                        navigateToAdjacentChat('previous');
+                    }
+                    break;
+                case 'ArrowDown':
+                    if (event.ctrlKey) {
+                        event.preventDefault();
+                        navigateToAdjacentChat('next');
+                    }
+                    break;
+                case 'Home':
+                    if (event.ctrlKey) {
+                        event.preventDefault();
+                        scrollToMessage('first');
+                    }
+                    break;
+                case 'End':
+                    if (event.ctrlKey) {
+                        event.preventDefault();
+                        scrollToMessage('last');
+                    }
+                    break;
+                case 'PageUp':
+                    event.preventDefault();
+                    smoothScrollMessages('up');
+                    break;
+                case 'PageDown':
+                    event.preventDefault();
+                    smoothScrollMessages('down');
+                    break;
+            }
+        });
+
+        // Listener para clique na seção de chat
+        const chatNavLink = document.querySelector('[data-section="chat"]');
+        if (chatNavLink) {
+            chatNavLink.addEventListener('click', function() {
+                setTimeout(() => {
+                    console.log('🔄 Seção de chat acessada, recarregando chats...');
+                    loadAdminChats();
+                }, 100);
+            });
         }
     }
+
+    // ========== FUNÇÕES DE CHAT ==========
     
-    // Função para lidar com Enter no input
-    function handleEnterKey(event) {
-        if (event.key === 'Enter' && !event.shiftKey) {
-            event.preventDefault();
-            sendMessage();
+    // Carregar chats administrativos
+    async function loadAdminChats() {
+        if (!window.chatManager) {
+            console.log('⚠️ Chat Manager não disponível ainda');
+            return;
+        }
+
+        try {
+            console.log('📊 Carregando chats administrativos...');
+            const chats = await window.chatManager.loadChats();
+            console.log('Chats carregados:', chats);
+            
+            updateChatList(chats);
+            
+        } catch (error) {
+            console.error('❌ Erro ao carregar chats:', error);
         }
     }
 
-    // Funções para gerenciar criação de chats
-    function openNewChatModal() {
-        document.getElementById('newChatModal').style.display = 'block';
-    }
-
-    function closeNewChatModal() {
-        document.getElementById('newChatModal').style.display = 'none';
-        document.getElementById('newChatForm').reset();
-    }
-
-    // Event listener para o formulário de novo chat
-    document.addEventListener('DOMContentLoaded', function() {
+    // Configurar formulário de novo chat
+    function setupNewChatForm() {
         const newChatForm = document.getElementById('newChatForm');
         if (newChatForm) {
             newChatForm.addEventListener('submit', async function(e) {
@@ -1288,9 +1358,7 @@
                     const newChat = await window.chatManager.createChat(chatData);
                     if (newChat) {
                         closeNewChatModal();
-                        showAdminNotification('Chat criado com sucesso!');
-                        
-                        // Atualizar lista de chats
+                        showAdminNotification('Chat criado com sucesso!', 'success');
                         await loadAdminChats();
                     }
                 } catch (error) {
@@ -1299,7 +1367,43 @@
                 }
             });
         }
-    });
+    }
+
+    // Enviar mensagem
+    function sendMessage() {
+        const messageInput = document.getElementById('messageInput');
+        if (!messageInput || !window.chatManager) return;
+        
+        const content = messageInput.value.trim();
+        if (!content) return;
+        
+        const success = window.chatManager.sendMessage(content);
+        
+        if (success) {
+            messageInput.value = '';
+            showAdminNotification('Mensagem enviada!', 'success');
+        } else {
+            showAdminNotification('Erro ao enviar mensagem', 'error');
+        }
+    }
+    
+    // Função para lidar com Enter no input
+    function handleEnterKey(event) {
+        if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault();
+            sendMessage();
+        }
+    }
+
+    // Gerenciar modais de chat
+    function openNewChatModal() {
+        document.getElementById('newChatModal').style.display = 'block';
+    }
+
+    function closeNewChatModal() {
+        document.getElementById('newChatModal').style.display = 'none';
+        document.getElementById('newChatForm').reset();
+    }
 
     // Função para mostrar notificação no admin
     function showAdminNotification(message, type = 'info') {
@@ -1342,22 +1446,6 @@
                 }
             }, 300);
         }, 3000);
-    }
-
-    // Função para carregar chats do admin
-    async function loadAdminChats() {
-        if (!window.chatManager) return;
-
-        try {
-            const chats = await window.chatManager.loadChats();
-            console.log('Chats administrativos carregados:', chats);
-            
-            // Atualizar interface com os chats carregados
-            updateChatList(chats);
-            
-        } catch (error) {
-            console.error('Erro ao carregar chats:', error);
-        }
     }
 
     // Atualizar lista de chats na interface
