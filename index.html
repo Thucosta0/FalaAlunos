@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fala Alunos - Sistema de Gestão</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <i class="fas fa-graduation-cap"></i>
+                <span>Fala Alunos</span>
+            </div>
+            <div class="admin-user-info">
+                <span class="user-indicator">
+                    <i class="fas fa-user-shield"></i>
+                    Administrador
+                </span>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="#dashboard" class="nav-link active" data-section="dashboard">
+                        <i class="fas fa-chart-bar"></i> Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#organograma" class="nav-link" data-section="organograma">
+                        <i class="fas fa-sitemap"></i> Organograma
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#kanban" class="nav-link" data-section="kanban">
+                        <i class="fas fa-tasks"></i> Kanban
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#usuarios" class="nav-link" data-section="usuarios">
+                        <i class="fas fa-users"></i> Usuários
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#metricas" class="nav-link" data-section="metricas">
+                        <i class="fas fa-analytics"></i> Métricas
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#chat" class="nav-link" data-section="chat">
+                        <i class="fas fa-comments"></i> Chat
+                    </a>
+                </li>
+            </ul>
+            <div class="nav-toggle">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <!-- Dashboard Section -->
+        <section id="dashboard" class="section active">
+            <div class="container">
+                <h1>Dashboard Principal</h1>
+                <div class="dashboard-grid">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Visão Geral</h3>
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="card-content">
+                            <div class="stats-grid">
+                                <div class="stat-item">
+                                    <span class="stat-number">45%</span>
+                                    <span class="stat-label">Taxa de Conclusão</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-number">16</span>
+                                    <span class="stat-label">Projetos Ativos</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-number">16</span>
+                                    <span class="stat-label">Usuários Online</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Gráfico de Performance</h3>
+                        </div>
+                        <div class="card-content">
+                            <canvas id="performanceChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Atividades Recentes</h3>
+                        </div>
+                        <div class="card-content">
+                            <div class="activity-list">
+                                <div class="activity-item">
+                                    <i class="fas fa-user-plus"></i>
+                                    <span>Novo usuário cadastrado</span>
+                                    <small>2 min atrás</small>
+                                </div>
+                                <div class="activity-item">
+                                    <i class="fas fa-check"></i>
+                                    <span>Tarefa concluída no Kanban</span>
+                                    <small>5 min atrás</small>
+                                </div>
+                                <div class="activity-item">
+                                    <i class="fas fa-edit"></i>
+                                    <span>Organograma atualizado</span>
+                                    <small>10 min atrás</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Organograma Section -->
+        <section id="organograma" class="section">
+            <div class="container">
+                <h1>Organograma</h1>
+                
+                <!-- Controles do Organograma -->
+                <div class="organograma-controls">
+                    <button class="btn btn-primary" onclick="openAddPositionModal()">
+                        <i class="fas fa-plus"></i> Adicionar Cargo
+                    </button>
+                    <button class="btn btn-secondary" onclick="resetOrganogram()">
+                        <i class="fas fa-refresh"></i> Resetar Organograma
+                    </button>
+                    <div class="view-controls">
+                        <label>
+                            <input type="checkbox" id="showConnectionLines" checked onchange="toggleConnectionLines()">
+                            Mostrar Linhas de Conexão
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Container do Organograma -->
+                <div class="organograma-container" id="organogramaContainer">
+                    <div class="empty-organogram">
+                        <i class="fas fa-sitemap"></i>
+                        <h3>Organograma Vazio</h3>
+                        <p>Comece adicionando o primeiro cargo da sua organização</p>
+                        <button class="btn btn-primary" onclick="openAddPositionModal()">
+                            <i class="fas fa-plus"></i> Adicionar Primeiro Cargo
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Kanban Section -->
+        <section id="kanban" class="section">
+            <div class="container">
+                <h1>Kanban Board</h1>
+                <div class="kanban-board">
+                    <div class="kanban-column" data-status="todo">
+                        <div class="column-header">
+                            <h3>A Fazer</h3>
+                            <span class="task-count">3</span>
+                        </div>
+                        <div class="column-content" id="todo-column">
+                            <div class="kanban-card" draggable="true">
+                                <div class="card-priority high"></div>
+                                <div class="card-header">
+                                    <h4>Implementar Dashboard</h4>
+                                    <div class="card-actions">
+                                        <button class="btn-action complete" onclick="completeTask(this)" title="Marcar como concluída">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                        <button class="btn-action edit" onclick="editTask(this)" title="Editar tarefa">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn-action delete" onclick="deleteTask(this)" title="Excluir tarefa">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <p>Criar interface principal do sistema</p>
+                                <div class="card-footer">
+                                    <span class="card-date">15/12/2024</span>
+                                    <div class="card-avatar">JD</div>
+                                </div>
+                            </div>
+                            <div class="kanban-card" draggable="true">
+                                <div class="card-priority medium"></div>
+                                <div class="card-header">
+                                    <h4>Revisar Documentação</h4>
+                                    <div class="card-actions">
+                                        <button class="btn-action complete" onclick="completeTask(this)" title="Marcar como concluída">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                        <button class="btn-action edit" onclick="editTask(this)" title="Editar tarefa">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn-action delete" onclick="deleteTask(this)" title="Excluir tarefa">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <p>Atualizar manuais do usuário</p>
+                                <div class="card-footer">
+                                    <span class="card-date">16/12/2024</span>
+                                    <div class="card-avatar">MS</div>
+                                </div>
+                            </div>
+                            <div class="kanban-card" draggable="true">
+                                <div class="card-priority low"></div>
+                                <div class="card-header">
+                                    <h4>Teste de Performance</h4>
+                                    <div class="card-actions">
+                                        <button class="btn-action complete" onclick="completeTask(this)" title="Marcar como concluída">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                        <button class="btn-action edit" onclick="editTask(this)" title="Editar tarefa">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn-action delete" onclick="deleteTask(this)" title="Excluir tarefa">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <p>Verificar velocidade do sistema</p>
+                                <div class="card-footer">
+                                    <span class="card-date">17/12/2024</span>
+                                    <div class="card-avatar">AB</div>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="add-task-btn" onclick="addTask('todo')">
+                            <i class="fas fa-plus"></i> Adicionar Tarefa
+                        </button>
+                    </div>
+
+                    <div class="kanban-column" data-status="doing">
+                        <div class="column-header">
+                            <h3>Em Progresso</h3>
+                            <span class="task-count">2</span>
+                        </div>
+                        <div class="column-content" id="doing-column">
+                            <div class="kanban-card" draggable="true">
+                                <div class="card-priority high"></div>
+                                <div class="card-header">
+                                    <h4>Desenvolver API</h4>
+                                    <div class="card-actions">
+                                        <button class="btn-action complete" onclick="completeTask(this)" title="Marcar como concluída">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                        <button class="btn-action edit" onclick="editTask(this)" title="Editar tarefa">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn-action delete" onclick="deleteTask(this)" title="Excluir tarefa">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <p>Criar endpoints para integração</p>
+                                <div class="card-footer">
+                                    <span class="card-date">14/12/2024</span>
+                                    <div class="card-avatar">LT</div>
+                                </div>
+                            </div>
+                            <div class="kanban-card" draggable="true">
+                                <div class="card-priority medium"></div>
+                                <div class="card-header">
+                                    <h4>Design UI/UX</h4>
+                                    <div class="card-actions">
+                                        <button class="btn-action complete" onclick="completeTask(this)" title="Marcar como concluída">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                        <button class="btn-action edit" onclick="editTask(this)" title="Editar tarefa">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn-action delete" onclick="deleteTask(this)" title="Excluir tarefa">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <p>Melhorar interface do usuário</p>
+                                <div class="card-footer">
+                                    <span class="card-date">13/12/2024</span>
+                                    <div class="card-avatar">RF</div>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="add-task-btn" onclick="addTask('doing')">
+                            <i class="fas fa-plus"></i> Adicionar Tarefa
+                        </button>
+                    </div>
+
+                    <div class="kanban-column" data-status="review">
+                        <div class="column-header">
+                            <h3>Em Revisão</h3>
+                            <span class="task-count">1</span>
+                        </div>
+                        <div class="column-content" id="review-column">
+                            <div class="kanban-card" draggable="true">
+                                <div class="card-priority medium"></div>
+                                <div class="card-header">
+                                    <h4>Validar Funcionalidades</h4>
+                                    <div class="card-actions">
+                                        <button class="btn-action complete" onclick="completeTask(this)" title="Marcar como concluída">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                        <button class="btn-action edit" onclick="editTask(this)" title="Editar tarefa">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn-action delete" onclick="deleteTask(this)" title="Excluir tarefa">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <p>Testar todas as features implementadas</p>
+                                <div class="card-footer">
+                                    <span class="card-date">12/12/2024</span>
+                                    <div class="card-avatar">CM</div>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="add-task-btn" onclick="addTask('review')">
+                            <i class="fas fa-plus"></i> Adicionar Tarefa
+                        </button>
+                    </div>
+
+                    <div class="kanban-column" data-status="done">
+                        <div class="column-header">
+                            <h3>Concluído</h3>
+                            <span class="task-count">4</span>
+                        </div>
+                        <div class="column-content" id="done-column">
+                            <div class="kanban-card" draggable="true">
+                                <div class="card-priority high"></div>
+                                <div class="card-header">
+                                    <h4>Setup Inicial</h4>
+                                    <div class="card-actions">
+                                        <button class="btn-action reopen" onclick="reopenTask(this)" title="Reabrir tarefa">
+                                            <i class="fas fa-undo"></i>
+                                        </button>
+                                        <button class="btn-action edit" onclick="editTask(this)" title="Editar tarefa">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn-action delete" onclick="deleteTask(this)" title="Excluir tarefa">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <p>Configuração do ambiente de desenvolvimento</p>
+                                <div class="card-footer">
+                                    <span class="card-date">10/12/2024</span>
+                                    <div class="card-avatar">LT</div>
+                                </div>
+                            </div>
+                            <div class="kanban-card" draggable="true">
+                                <div class="card-priority medium"></div>
+                                <div class="card-header">
+                                    <h4>Banco de Dados</h4>
+                                    <div class="card-actions">
+                                        <button class="btn-action reopen" onclick="reopenTask(this)" title="Reabrir tarefa">
+                                            <i class="fas fa-undo"></i>
+                                        </button>
+                                        <button class="btn-action edit" onclick="editTask(this)" title="Editar tarefa">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn-action delete" onclick="deleteTask(this)" title="Excluir tarefa">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <p>Estrutura e modelagem dos dados</p>
+                                <div class="card-footer">
+                                    <span class="card-date">11/12/2024</span>
+                                    <div class="card-avatar">DB</div>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="add-task-btn" onclick="addTask('done')">
+                            <i class="fas fa-plus"></i> Adicionar Tarefa
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Usuários Section -->
+        <section id="usuarios" class="section">
+            <div class="container">
+                <h1>Gestão de Usuários</h1>
+                <div class="users-header">
+                    <button class="btn btn-primary" onclick="openUserModal()">
+                        <i class="fas fa-user-plus"></i> Adicionar Usuário
+                    </button>
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Buscar usuários..." id="userSearch">
+                    </div>
+                </div>
+                
+                <div class="users-grid">
+                    <div class="user-card">
+                        <div class="user-avatar">
+                            <i class="fas fa-user-tie"></i>
+                        </div>
+                        <div class="user-info">
+                            <h4>Lucas Toledo</h4>
+                            <span class="user-role director">Diretor</span>
+                            <p>lucas.toledo@falaalunos.com</p>
+                        </div>
+                        <div class="user-actions">
+                            <button class="btn-icon" onclick="editUser(1)">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn-icon" onclick="deleteUser(1)">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="user-card">
+                        <div class="user-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="user-info">
+                            <h4>Maria Silva</h4>
+                            <span class="user-role coordinator">Coordenadora</span>
+                            <p>maria.silva@falaalunos.com</p>
+                        </div>
+                        <div class="user-actions">
+                            <button class="btn-icon" onclick="editUser(2)">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn-icon" onclick="deleteUser(2)">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="user-card">
+                        <div class="user-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="user-info">
+                            <h4>João Santos</h4>
+                            <span class="user-role teacher">Professor</span>
+                            <p>joao.santos@falaalunos.com</p>
+                        </div>
+                        <div class="user-actions">
+                            <button class="btn-icon" onclick="editUser(3)">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn-icon" onclick="deleteUser(3)">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="user-card">
+                        <div class="user-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="user-info">
+                            <h4>Ana Costa</h4>
+                            <span class="user-role teacher">Professora</span>
+                            <p>ana.costa@falaalunos.com</p>
+                        </div>
+                        <div class="user-actions">
+                            <button class="btn-icon" onclick="editUser(4)">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn-icon" onclick="deleteUser(4)">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Métricas Section -->
+        <section id="metricas" class="section">
+            <div class="container">
+                <h1>Métricas e Relatórios</h1>
+                <div class="metrics-grid">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Gráfico de Barras - Performance por Período</h3>
+                        </div>
+                        <div class="card-content">
+                            <canvas id="barChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Estatísticas Principais</h3>
+                        </div>
+                        <div class="card-content">
+                            <div class="metrics-stats">
+                                <div class="metric-item">
+                                    <div class="metric-circle">
+                                        <span>45%</span>
+                                    </div>
+                                    <p>Taxa de Conclusão</p>
+                                </div>
+                                <div class="metric-bars">
+                                    <div class="metric-bar">
+                                        <span>Projetos Ativos</span>
+                                        <div class="bar-container">
+                                            <div class="bar" style="width: 80%"></div>
+                                        </div>
+                                        <span>16</span>
+                                    </div>
+                                    <div class="metric-bar">
+                                        <span>Usuários Online</span>
+                                        <div class="bar-container">
+                                            <div class="bar" style="width: 60%"></div>
+                                        </div>
+                                        <span>16</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Gráfico de Linhas - Evolução Temporal</h3>
+                        </div>
+                        <div class="card-content">
+                            <canvas id="lineChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Comparativo por Categoria</h3>
+                        </div>
+                        <div class="card-content">
+                            <canvas id="comparisonChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Chat Section -->
+        <section id="chat" class="section">
+            <div class="container">
+                <h1>Central de Atendimento</h1>
+                
+                <!-- Chat Header com Estatísticas -->
+                <div class="chat-header">
+                    <div class="chat-stats">
+                        <div class="stat-card">
+                            <i class="fas fa-clock"></i>
+                            <div>
+                                <span class="stat-number">2 min</span>
+                                <span class="stat-label">Tempo Médio de Resposta</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <i class="fas fa-users"></i>
+                            <div>
+                                <span class="stat-number">3</span>
+                                <span class="stat-label">Coordenadores Online</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <i class="fas fa-check-circle"></i>
+                            <div>
+                                <span class="stat-number">98%</span>
+                                <span class="stat-label">Satisfação</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="chat-actions">
+                        <button class="btn btn-primary" onclick="startNewChat()">
+                            <i class="fas fa-plus"></i> Nova Conversa
+                        </button>
+                        <button class="btn btn-secondary" onclick="openSuggestionsModal()">
+                            <i class="fas fa-lightbulb"></i> Enviar Sugestão
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Chat Container -->
+                <div class="chat-container">
+                    <!-- Lista de Conversas -->
+                    <div class="chat-sidebar">
+                        <div class="chat-sidebar-header">
+                            <h3>Conversas</h3>
+                            <div class="chat-filter">
+                                <select id="chatFilter">
+                                    <option value="all">Todas</option>
+                                    <option value="academic">Acadêmicas</option>
+                                    <option value="administrative">Administrativas</option>
+                                    <option value="suggestions">Sugestões</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="chat-list" id="chatList">
+                            <div class="chat-item active" data-chat-id="1">
+                                <div class="chat-avatar">
+                                    <i class="fas fa-graduation-cap"></i>
+                                </div>
+                                <div class="chat-info">
+                                    <h4>Suporte Acadêmico</h4>
+                                    <p>Dúvida sobre matrícula em disciplinas</p>
+                                    <small>Agora</small>
+                                </div>
+                                <div class="chat-status online"></div>
+                            </div>
+                            
+                            <div class="chat-item" data-chat-id="2">
+                                <div class="chat-avatar">
+                                    <i class="fas fa-file-alt"></i>
+                                </div>
+                                <div class="chat-info">
+                                    <h4>Processos Administrativos</h4>
+                                    <p>Solicitação de histórico escolar</p>
+                                    <small>5 min atrás</small>
+                                </div>
+                                <div class="chat-status online"></div>
+                            </div>
+                            
+                            <div class="chat-item" data-chat-id="3">
+                                <div class="chat-avatar">
+                                    <i class="fas fa-lightbulb"></i>
+                                </div>
+                                <div class="chat-info">
+                                    <h4>Canal de Sugestões</h4>
+                                    <p>Ideias para melhoria do sistema</p>
+                                    <small>1 hora atrás</small>
+                                </div>
+                                <div class="chat-status away"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Área de Chat Principal -->
+                    <div class="chat-main">
+                        <div class="chat-main-header">
+                            <div class="chat-contact-info">
+                                <div class="contact-avatar">
+                                    <i class="fas fa-graduation-cap"></i>
+                                </div>
+                                <div class="contact-details">
+                                    <h4>Suporte Acadêmico</h4>
+                                    <span class="contact-status">
+                                        <i class="fas fa-circle online"></i> Online - Coord. Maria Silva
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="chat-options">
+                                <button class="btn-icon" onclick="toggleChatInfo()">
+                                    <i class="fas fa-info-circle"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="chat-messages" id="chatMessages">
+                            <div class="message-date">Hoje</div>
+                            
+                            <div class="message received">
+                                <div class="message-avatar">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div class="message-content">
+                                    <div class="message-bubble">
+                                        Olá! Bem-vindo ao suporte acadêmico da UniSync. Como posso ajudá-lo hoje?
+                                    </div>
+                                    <div class="message-time">14:30</div>
+                                </div>
+                            </div>
+
+                            <div class="message sent">
+                                <div class="message-content">
+                                    <div class="message-bubble">
+                                        Olá! Tenho dúvidas sobre o processo de matrícula em disciplinas optativas. Poderia me ajudar?
+                                    </div>
+                                    <div class="message-time">14:32</div>
+                                </div>
+                            </div>
+
+                            <div class="message received">
+                                <div class="message-avatar">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div class="message-content">
+                                    <div class="message-bubble">
+                                        Claro! Ficarei feliz em ajudar. As matrículas em disciplinas optativas seguem algumas etapas específicas. Primeiro, você precisa verificar os pré-requisitos...
+                                    </div>
+                                    <div class="message-time">14:33</div>
+                                </div>
+                            </div>
+
+                            <div class="message received typing">
+                                <div class="message-avatar">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div class="message-content">
+                                    <div class="message-bubble">
+                                        <div class="typing-indicator">
+                                            <span></span>
+                                            <span></span>
+                                            <span></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="chat-input-container">
+                            <div class="quick-responses" id="quickResponses">
+                                <button class="quick-response-btn" onclick="insertQuickResponse('Preciso de ajuda com matrícula')">
+                                    Matrícula
+                                </button>
+                                <button class="quick-response-btn" onclick="insertQuickResponse('Como solicito meu histórico?')">
+                                    Histórico
+                                </button>
+                                <button class="quick-response-btn" onclick="insertQuickResponse('Tenho dúvidas sobre prazos')">
+                                    Prazos
+                                </button>
+                                <button class="quick-response-btn" onclick="insertQuickResponse('Preciso falar sobre financeiro')">
+                                    Financeiro
+                                </button>
+                            </div>
+                            
+                            <div class="chat-input">
+                                <button class="btn-icon" onclick="toggleQuickResponses()">
+                                    <i class="fas fa-bolt"></i>
+                                </button>
+                                <input type="text" id="messageInput" placeholder="Digite sua mensagem..." onkeypress="handleEnterKey(event)">
+                                <button class="btn-icon" onclick="attachFile()">
+                                    <i class="fas fa-paperclip"></i>
+                                </button>
+                                <button class="btn-icon" onclick="sendMessage()">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Painel de Informações -->
+                    <div class="chat-info-panel" id="chatInfoPanel">
+                        <div class="info-panel-header">
+                            <h3>Informações do Atendimento</h3>
+                            <button class="btn-icon" onclick="toggleChatInfo()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="info-panel-content">
+                            <div class="info-section">
+                                <h4>Categoria</h4>
+                                <span class="info-tag academic">Suporte Acadêmico</span>
+                            </div>
+                            
+                            <div class="info-section">
+                                <h4>Coordenador Responsável</h4>
+                                <div class="coordinator-info">
+                                    <div class="coordinator-avatar">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                    <div>
+                                        <strong>Maria Silva</strong>
+                                        <p>Coordenadora Acadêmica</p>
+                                        <span class="status-indicator online">Online</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="info-section">
+                                <h4>Horário de Atendimento</h4>
+                                <p>Segunda a Sexta: 8h às 18h<br>
+                                Sábado: 8h às 12h</p>
+                            </div>
+                            
+                            <div class="info-section">
+                                <h4>Ações Rápidas</h4>
+                                <div class="quick-actions">
+                                    <button class="quick-action-btn" onclick="rateChat()">
+                                        <i class="fas fa-star"></i> Avaliar Atendimento
+                                    </button>
+                                    <button class="quick-action-btn" onclick="requestCallback()">
+                                        <i class="fas fa-phone"></i> Solicitar Retorno
+                                    </button>
+                                    <button class="quick-action-btn" onclick="escalateChat()">
+                                        <i class="fas fa-arrow-up"></i> Falar com Supervisor
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal para adicionar/editar usuário -->
+    <div id="userModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Adicionar Usuário</h3>
+                <span class="close" onclick="closeUserModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="userForm">
+                    <div class="form-group">
+                        <label for="userName">Nome:</label>
+                        <input type="text" id="userName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="userEmail">Email:</label>
+                        <input type="email" id="userEmail" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="userRole">Cargo:</label>
+                        <select id="userRole" required>
+                            <option value="">Selecione um cargo</option>
+                            <option value="director">Diretor</option>
+                            <option value="coordinator">Coordenador</option>
+                            <option value="teacher">Professor</option>
+                            <option value="student">Aluno</option>
+                        </select>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeUserModal()">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Salvar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para adicionar tarefa -->
+    <div id="taskModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Adicionar Nova Tarefa</h3>
+                <span class="close" onclick="closeTaskModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="taskForm">
+                    <div class="form-group">
+                        <label for="taskTitle">Título:</label>
+                        <input type="text" id="taskTitle" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="taskDescription">Descrição:</label>
+                        <textarea id="taskDescription" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="taskPriority">Prioridade:</label>
+                        <select id="taskPriority" required>
+                            <option value="low">Baixa</option>
+                            <option value="medium">Média</option>
+                            <option value="high">Alta</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="taskDate">Data:</label>
+                        <input type="date" id="taskDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="taskAssignee">Responsável:</label>
+                        <input type="text" id="taskAssignee" placeholder="Iniciais" maxlength="2" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeTaskModal()">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Adicionar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Nova Conversa -->
+    <div id="newChatModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Iniciar Nova Conversa</h3>
+                <span class="close" onclick="closeNewChatModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="newChatForm">
+                    <div class="form-group">
+                        <label for="chatCategory">Categoria do Atendimento:</label>
+                        <select id="chatCategory" required>
+                            <option value="">Selecione uma categoria</option>
+                            <option value="academic">Suporte Acadêmico</option>
+                            <option value="administrative">Processos Administrativos</option>
+                            <option value="financial">Questões Financeiras</option>
+                            <option value="technical">Suporte Técnico</option>
+                            <option value="general">Informações Gerais</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="chatSubject">Assunto:</label>
+                        <input type="text" id="chatSubject" placeholder="Descreva brevemente sua dúvida" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="chatMessage">Mensagem Inicial:</label>
+                        <textarea id="chatMessage" rows="4" placeholder="Descreva sua dúvida ou solicitação em detalhes..." required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="chatPriority">Prioridade:</label>
+                        <select id="chatPriority" required>
+                            <option value="low">Baixa - Não é urgente</option>
+                            <option value="medium" selected>Média - Preciso de resposta em algumas horas</option>
+                            <option value="high">Alta - É urgente</option>
+                        </select>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeNewChatModal()">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Iniciar Conversa</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Sugestões -->
+    <div id="suggestionsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Enviar Sugestão</h3>
+                <span class="close" onclick="closeSuggestionsModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="suggestionsForm">
+                    <div class="form-group">
+                        <label for="suggestionType">Tipo de Sugestão:</label>
+                        <select id="suggestionType" required>
+                            <option value="">Selecione o tipo</option>
+                            <option value="system">Melhoria no Sistema</option>
+                            <option value="process">Melhoria em Processos</option>
+                            <option value="service">Melhoria no Atendimento</option>
+                            <option value="feature">Nova Funcionalidade</option>
+                            <option value="other">Outros</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="suggestionTitle">Título da Sugestão:</label>
+                        <input type="text" id="suggestionTitle" placeholder="Resuma sua sugestão em poucas palavras" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="suggestionDescription">Descrição Detalhada:</label>
+                        <textarea id="suggestionDescription" rows="5" placeholder="Descreva sua sugestão em detalhes. Como isso pode melhorar a experiência dos alunos?" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="suggestionBenefit">Benefício Esperado:</label>
+                        <textarea id="suggestionBenefit" rows="3" placeholder="Que benefícios essa sugestão traria para os alunos e a instituição?"></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeSuggestionsModal()">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Enviar Sugestão</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Avaliação -->
+    <div id="ratingModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Avaliar Atendimento</h3>
+                <span class="close" onclick="closeRatingModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="ratingForm">
+                    <div class="form-group">
+                        <label>Como você avalia o atendimento recebido?</label>
+                        <div class="rating-stars">
+                            <i class="fas fa-star" data-rating="1"></i>
+                            <i class="fas fa-star" data-rating="2"></i>
+                            <i class="fas fa-star" data-rating="3"></i>
+                            <i class="fas fa-star" data-rating="4"></i>
+                            <i class="fas fa-star" data-rating="5"></i>
+                        </div>
+                        <input type="hidden" id="ratingValue" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="ratingComment">Comentário (opcional):</label>
+                        <textarea id="ratingComment" rows="3" placeholder="Conte-nos mais sobre sua experiência..."></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeRatingModal()">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Enviar Avaliação</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Editar Tarefa -->
+    <div id="editTaskModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Editar Tarefa</h3>
+                <span class="close" onclick="closeEditTaskModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="editTaskForm">
+                    <div class="form-group">
+                        <label for="editTaskTitle">Título:</label>
+                        <input type="text" id="editTaskTitle" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editTaskDescription">Descrição:</label>
+                        <textarea id="editTaskDescription" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="editTaskPriority">Prioridade:</label>
+                        <select id="editTaskPriority" required>
+                            <option value="low">Baixa</option>
+                            <option value="medium">Média</option>
+                            <option value="high">Alta</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editTaskDate">Data:</label>
+                        <input type="date" id="editTaskDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editTaskAssignee">Responsável:</label>
+                        <input type="text" id="editTaskAssignee" placeholder="Iniciais" maxlength="2" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeEditTaskModal()">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Adicionar/Editar Posição do Organograma -->
+    <div id="positionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="positionModalTitle">Adicionar Cargo</h3>
+                <span class="close" onclick="closePositionModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="positionForm">
+                    <div class="form-group">
+                        <label for="positionName">Nome da Pessoa:</label>
+                        <input type="text" id="positionName" required placeholder="Ex: João Silva">
+                    </div>
+                    <div class="form-group">
+                        <label for="positionTitle">Cargo/Título:</label>
+                        <input type="text" id="positionTitle" required placeholder="Ex: Diretor, Coordenador, Professor">
+                    </div>
+                    <div class="form-group">
+                        <label for="positionDepartment">Departamento/Setor:</label>
+                        <input type="text" id="positionDepartment" placeholder="Ex: Administrativo, Acadêmico">
+                    </div>
+                    <div class="form-group">
+                        <label for="positionEmail">Email:</label>
+                        <input type="email" id="positionEmail" placeholder="email@exemplo.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="positionPhone">Telefone:</label>
+                        <input type="tel" id="positionPhone" placeholder="(11) 99999-9999">
+                    </div>
+                    <div class="form-group">
+                        <label for="positionSuperior">Cargo Superior:</label>
+                        <select id="positionSuperior">
+                            <option value="">Nenhum (Cargo mais alto)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="positionLevel">Nível Hierárquico:</label>
+                        <select id="positionLevel" required>
+                            <option value="executive">Executivo</option>
+                            <option value="management">Gerência</option>
+                            <option value="coordination">Coordenação</option>
+                            <option value="operation">Operacional</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="positionIcon">Ícone:</label>
+                        <select id="positionIcon">
+                            <option value="fa-user-tie">👔 Executivo</option>
+                            <option value="fa-user-graduate">🎓 Acadêmico</option>
+                            <option value="fa-user-cog">⚙️ Administrativo</option>
+                            <option value="fa-user">👤 Geral</option>
+                            <option value="fa-chalkboard-teacher">👨‍🏫 Professor</option>
+                            <option value="fa-user-shield">🛡️ Segurança</option>
+                            <option value="fa-user-md">👨‍⚕️ Saúde</option>
+                        </select>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closePositionModal()">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Salvar Cargo</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Detalhes da Posição -->
+    <div id="positionDetailsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Detalhes do Cargo</h3>
+                <span class="close" onclick="closePositionDetailsModal()">&times;</span>
+            </div>
+            <div class="modal-body" id="positionDetailsContent">
+                <!-- Conteúdo será preenchido dinamicamente -->
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+    // Inicialização
+    document.addEventListener('DOMContentLoaded', function() {
+        // Verificar se está logado como administrativo E com credenciais válidas
+        const userProfile = sessionStorage.getItem('userProfile');
+        const adminCredentials = sessionStorage.getItem('adminCredentials');
+        
+        if (userProfile !== 'admin' || adminCredentials !== 'validated') {
+            // Redirecionar para login se não estiver autenticado adequadamente
+            sessionStorage.removeItem('userProfile');
+            sessionStorage.removeItem('adminCredentials');
+            sessionStorage.removeItem('loginTime');
+            window.location.href = 'login.html';
+            return;
+        }
+
+        initializeNavigation();
+        initializeCharts();
+        initializeDragAndDrop();
+        initializeSearch();
+        initializeModals();
+        updateTaskCounts();
+        initializeChat();
+        initializeEditTaskModal();
+        initializeAdminChat();
+    });
+    </script>
+</body>
+</html> 

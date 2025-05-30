@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal do Aluno - Fala Alunos</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logout-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        /* Main Layout */
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 2rem;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            height: fit-content;
+            position: sticky;
+            top: 100px;
+        }
+
+        .sidebar h3 {
+            color: #2c3e50;
+            margin-bottom: 1.5rem;
+            font-size: 1.2rem;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 0.5rem;
+            text-decoration: none;
+            color: #6c757d;
+        }
+
+        .menu-item:hover,
+        .menu-item.active {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+            transform: translateX(5px);
+        }
+
+        .menu-item i {
+            width: 20px;
+            text-align: center;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 2rem;
+            padding: 1rem;
+            background: rgba(39, 174, 96, 0.1);
+            border-radius: 10px;
+            color: #27ae60;
+            font-size: 0.9rem;
+        }
+
+        .status-indicator i {
+            font-size: 0.7rem;
+        }
+
+        /* Content Area */
+        .content-area {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .content-section {
+            display: none;
+            padding: 2rem;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        .section-header {
+            border-bottom: 1px solid #e9ecef;
+            padding-bottom: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .section-header h2 {
+            color: #2c3e50;
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .section-header p {
+            color: #6c757d;
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .action-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .action-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+            color: white;
+        }
+
+        .action-card i {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .action-card h3 {
+            margin-bottom: 0.5rem;
+        }
+
+        .action-card p {
+            opacity: 0.9;
+            font-size: 0.9rem;
+        }
+
+        /* Chat Interface */
+        .chat-container {
+            height: 600px;
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            border: 1px solid #e9ecef;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+
+        .chat-sidebar {
+            background: #f8f9fa;
+            border-right: 1px solid #e9ecef;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .chat-categories {
+            flex: 1;
+            padding: 1rem 0;
+        }
+
+        .chat-category {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .chat-category:hover {
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .chat-category.active {
+            background: rgba(102, 126, 234, 0.15);
+            border-left-color: #667eea;
+        }
+
+        .category-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #667eea;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .category-info h4 {
+            color: #2c3e50;
+            margin-bottom: 0.2rem;
+            font-size: 0.9rem;
+        }
+
+        .category-info p {
+            color: #6c757d;
+            font-size: 0.8rem;
+        }
+
+        .coordinator-status {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            margin-top: 0.2rem;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+        }
+
+        .status-dot.online {
+            background: #27ae60;
+        }
+
+        .status-dot.away {
+            background: #f39c12;
+        }
+
+        /* Chat Main */
+        .chat-main {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e9ecef;
+            background: white;
+        }
+
+        .chat-contact-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .contact-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .contact-details h4 {
+            color: #2c3e50;
+            margin-bottom: 0.2rem;
+        }
+
+        .contact-status {
+            color: #6c757d;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 1rem;
+            overflow-y: auto;
+            background: #f8f9fa;
+            max-height: 400px;
+        }
+
+        .message {
+            display: flex;
+            margin-bottom: 1rem;
+            gap: 0.5rem;
+        }
+
+        .message.sent {
+            justify-content: flex-end;
+        }
+
+        .message-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #667eea;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            flex-shrink: 0;
+        }
+
+        .message-content {
+            max-width: 70%;
+        }
+
+        .message-bubble {
+            padding: 0.8rem 1rem;
+            border-radius: 18px;
+            margin-bottom: 0.2rem;
+            word-wrap: break-word;
+        }
+
+        .message.received .message-bubble {
+            background: white;
+            color: #2c3e50;
+            border-bottom-left-radius: 4px;
+        }
+
+        .message.sent .message-bubble {
+            background: #667eea;
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message-time {
+            font-size: 0.7rem;
+            color: #adb5bd;
+            padding: 0 0.5rem;
+        }
+
+        .message.sent .message-time {
+            text-align: right;
+        }
+
+        .chat-input-container {
+            border-top: 1px solid #e9ecef;
+            background: white;
+        }
+
+        .chat-input {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            gap: 0.5rem;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 0.8rem 1rem;
+            border: 1px solid #e9ecef;
+            border-radius: 25px;
+            outline: none;
+            font-size: 0.9rem;
+        }
+
+        .chat-input input:focus {
+            border-color: #667eea;
+        }
+
+        .send-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            border-radius: 50%;
+            background: #667eea;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .send-btn:hover {
+            background: #5a6fd8;
+            transform: scale(1.05);
+        }
+
+        /* Info Cards */
+        .info-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .info-card {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .info-card:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+
+        .info-card h4 {
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .info-card h4 i {
+            color: #667eea;
+        }
+
+        .info-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .info-list li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #f8f9fa;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .info-list li:last-child {
+            border-bottom: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .main-container {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .sidebar {
+                position: static;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                padding: 0 1rem;
+            }
+
+            .main-container {
+                padding: 1rem;
+            }
+
+            .chat-container {
+                grid-template-columns: 1fr;
+                height: 500px;
+            }
+
+            .chat-sidebar {
+                display: none;
+            }
+
+            .quick-actions {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .content-section.active {
+            animation: fadeIn 0.5s ease;
+        }
+
+        /* Typing indicator */
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 0.5rem;
+            margin-left: 2.5rem;
+        }
+
+        .typing-indicator span {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #adb5bd;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+
+        .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+        .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes typing {
+            0%, 80%, 100% {
+                opacity: 0.3;
+                transform: scale(0.8);
+            }
+            40% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <i class="fas fa-graduation-cap"></i>
+                Portal do Aluno
+            </div>
+            <div class="user-info">
+                <div class="user-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <span>João Silva</span>
+                <button class="logout-btn" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Sair
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <h3>Menu Principal</h3>
+            <nav>
+                <div class="menu-item active" onclick="showSection('dashboard')">
+                    <i class="fas fa-home"></i>
+                    <span>Início</span>
+                </div>
+                <div class="menu-item" onclick="showSection('chat')">
+                    <i class="fas fa-comments"></i>
+                    <span>Chat com Coordenadores</span>
+                </div>
+                <div class="menu-item" onclick="showSection('academic')">
+                    <i class="fas fa-graduation-cap"></i>
+                    <span>Informações Acadêmicas</span>
+                </div>
+                <div class="menu-item" onclick="showSection('services')">
+                    <i class="fas fa-cog"></i>
+                    <span>Serviços</span>
+                </div>
+                <div class="menu-item" onclick="showSection('support')">
+                    <i class="fas fa-question-circle"></i>
+                    <span>Suporte</span>
+                </div>
+            </nav>
+
+            <div class="status-indicator">
+                <i class="fas fa-circle"></i>
+                <span>Sistema Online</span>
+            </div>
+        </aside>
+
+        <!-- Content Area -->
+        <main class="content-area">
+            <!-- Dashboard Section -->
+            <section id="dashboard" class="content-section active">
+                <div class="section-header">
+                    <h2>Bem-vindo, João! 👋</h2>
+                    <p>Aqui você pode acessar todos os serviços e se comunicar com os coordenadores.</p>
+                </div>
+
+                <div class="quick-actions">
+                    <div class="action-card" onclick="showSection('chat')">
+                        <i class="fas fa-comments"></i>
+                        <h3>Chat Rápido</h3>
+                        <p>Tire suas dúvidas com nossos coordenadores</p>
+                    </div>
+                    <div class="action-card" onclick="showSection('academic')">
+                        <i class="fas fa-graduation-cap"></i>
+                        <h3>Minha Situação</h3>
+                        <p>Consulte informações acadêmicas</p>
+                    </div>
+                    <div class="action-card" onclick="showSection('services')">
+                        <i class="fas fa-file-alt"></i>
+                        <h3>Solicitações</h3>
+                        <p>Documentos e processos administrativos</p>
+                    </div>
+                </div>
+
+                <div class="info-cards">
+                    <div class="info-card">
+                        <h4><i class="fas fa-clock"></i> Últimas Atividades</h4>
+                        <ul class="info-list">
+                            <li>
+                                <span>Chat com coordenação acadêmica</span>
+                                <small>2 horas atrás</small>
+                            </li>
+                            <li>
+                                <span>Solicitação de histórico</span>
+                                <small>Ontem</small>
+                            </li>
+                            <li>
+                                <span>Mensagem da secretaria</span>
+                                <small>2 dias atrás</small>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="info-card">
+                        <h4><i class="fas fa-bell"></i> Notificações</h4>
+                        <ul class="info-list">
+                            <li>
+                                <span>Período de matrícula aberto</span>
+                                <small>Novo</small>
+                            </li>
+                            <li>
+                                <span>Resposta do coordenador</span>
+                                <small>1 hora atrás</small>
+                            </li>
+                            <li>
+                                <span>Documento disponível</span>
+                                <small>3 horas atrás</small>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Chat Section -->
+            <section id="chat" class="content-section">
+                <div class="section-header">
+                    <h2>Chat com Coordenadores</h2>
+                    <p>Escolha a categoria e tire suas dúvidas diretamente com nossos especialistas.</p>
+                </div>
+
+                <div class="chat-container">
+                    <div class="chat-sidebar">
+                        <div class="chat-sidebar-header">
+                            <h4>Categorias de Atendimento</h4>
+                        </div>
+                        <div class="chat-categories">
+                            <div class="chat-category active" onclick="selectCategory('academic')">
+                                <div class="category-icon">
+                                    <i class="fas fa-graduation-cap"></i>
+                                </div>
+                                <div class="category-info">
+                                    <h4>Suporte Acadêmico</h4>
+                                    <p>Maria Silva - Coordenadora</p>
+                                    <div class="coordinator-status">
+                                        <div class="status-dot online"></div>
+                                        <span>Online</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="chat-category" onclick="selectCategory('administrative')">
+                                <div class="category-icon">
+                                    <i class="fas fa-file-alt"></i>
+                                </div>
+                                <div class="category-info">
+                                    <h4>Processos Administrativos</h4>
+                                    <p>João Santos - Coordenador</p>
+                                    <div class="coordinator-status">
+                                        <div class="status-dot online"></div>
+                                        <span>Online</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="chat-category" onclick="selectCategory('financial')">
+                                <div class="category-icon">
+                                    <i class="fas fa-dollar-sign"></i>
+                                </div>
+                                <div class="category-info">
+                                    <h4>Questões Financeiras</h4>
+                                    <p>Carlos Lima - Coordenador</p>
+                                    <div class="coordinator-status">
+                                        <div class="status-dot away"></div>
+                                        <span>Ausente</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="chat-category" onclick="selectCategory('technical')">
+                                <div class="category-icon">
+                                    <i class="fas fa-cog"></i>
+                                </div>
+                                <div class="category-info">
+                                    <h4>Suporte Técnico</h4>
+                                    <p>Ana Costa - Coordenadora</p>
+                                    <div class="coordinator-status">
+                                        <div class="status-dot online"></div>
+                                        <span>Online</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="chat-main">
+                        <div class="chat-header">
+                            <div class="chat-contact-info">
+                                <div class="contact-avatar">
+                                    <i class="fas fa-graduation-cap"></i>
+                                </div>
+                                <div class="contact-details">
+                                    <h4>Maria Silva - Suporte Acadêmico</h4>
+                                    <div class="contact-status">
+                                        <i class="fas fa-circle" style="color: #27ae60; font-size: 0.6rem;"></i>
+                                        Online - Tempo médio de resposta: 2 min
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="chat-messages" id="chatMessages">
+                            <div class="message received">
+                                <div class="message-avatar">
+                                    MS
+                                </div>
+                                <div class="message-content">
+                                    <div class="message-bubble">
+                                        Olá João! Bem-vindo ao suporte acadêmico da UniSync. Como posso ajudá-lo hoje?
+                                    </div>
+                                    <div class="message-time">14:30</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="chat-input-container">
+                            <div class="chat-input">
+                                <input type="text" id="messageInput" placeholder="Digite sua mensagem..." onkeypress="handleEnterKey(event)">
+                                <button class="send-btn" onclick="sendMessage()">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Academic Section -->
+            <section id="academic" class="content-section">
+                <div class="section-header">
+                    <h2>Informações Acadêmicas</h2>
+                    <p>Consulte sua situação acadêmica e histórico.</p>
+                </div>
+
+                <div class="info-cards">
+                    <div class="info-card">
+                        <h4><i class="fas fa-user-graduate"></i> Dados Acadêmicos</h4>
+                        <ul class="info-list">
+                            <li><span>Curso:</span> <strong>Engenharia de Software</strong></li>
+                            <li><span>Período:</span> <strong>5º Semestre</strong></li>
+                            <li><span>Situação:</span> <strong>Ativo</strong></li>
+                            <li><span>CR:</span> <strong>8.5</strong></li>
+                        </ul>
+                    </div>
+
+                    <div class="info-card">
+                        <h4><i class="fas fa-calendar"></i> Próximos Eventos</h4>
+                        <ul class="info-list">
+                            <li><span>Matrícula 2024.1</span> <small>15/12 - 20/12</small></li>
+                            <li><span>Prova Final P3</span> <small>10/12</small></li>
+                            <li><span>Resultado Final</span> <small>22/12</small></li>
+                        </ul>
+                    </div>
+
+                    <div class="info-card">
+                        <h4><i class="fas fa-book"></i> Disciplinas Atuais</h4>
+                        <ul class="info-list">
+                            <li><span>Algoritmos Avançados</span> <strong>A</strong></li>
+                            <li><span>Banco de Dados</span> <strong>B+</strong></li>
+                            <li><span>Engenharia de Software</span> <strong>A-</strong></li>
+                            <li><span>Redes de Computadores</span> <strong>B</strong></li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Services Section -->
+            <section id="services" class="content-section">
+                <div class="section-header">
+                    <h2>Serviços e Solicitações</h2>
+                    <p>Solicite documentos e acompanhe seus processos.</p>
+                </div>
+
+                <div class="quick-actions">
+                    <div class="action-card">
+                        <i class="fas fa-file-alt"></i>
+                        <h3>Histórico Escolar</h3>
+                        <p>Solicitar histórico completo</p>
+                    </div>
+                    <div class="action-card">
+                        <i class="fas fa-certificate"></i>
+                        <h3>Declarações</h3>
+                        <p>Declaração de matrícula e outros</p>
+                    </div>
+                    <div class="action-card">
+                        <i class="fas fa-clock"></i>
+                        <h3>Horários</h3>
+                        <p>Consultar grade de horários</p>
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <h4><i class="fas fa-list"></i> Solicitações em Andamento</h4>
+                    <ul class="info-list">
+                        <li>
+                            <span>Histórico Escolar Completo</span>
+                            <small style="color: #f39c12;">Em processamento</small>
+                        </li>
+                        <li>
+                            <span>Declaração de Matrícula</span>
+                            <small style="color: #27ae60;">Concluído</small>
+                        </li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Support Section -->
+            <section id="support" class="content-section">
+                <div class="section-header">
+                    <h2>Central de Suporte</h2>
+                    <p>Precisa de ajuda? Estamos aqui para você!</p>
+                </div>
+
+                <div class="quick-actions">
+                    <div class="action-card" onclick="showSection('chat')">
+                        <i class="fas fa-headset"></i>
+                        <h3>Chat ao Vivo</h3>
+                        <p>Fale com um coordenador agora</p>
+                    </div>
+                    <div class="action-card">
+                        <i class="fas fa-phone"></i>
+                        <h3>Telefone</h3>
+                        <p>(11) 1234-5678</p>
+                    </div>
+                    <div class="action-card">
+                        <i class="fas fa-envelope"></i>
+                        <h3>Email</h3>
+                        <p>suporte@unisync.edu.br</p>
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <h4><i class="fas fa-question-circle"></i> Perguntas Frequentes</h4>
+                    <ul class="info-list">
+                        <li><span>Como solicitar histórico escolar?</span></li>
+                        <li><span>Quando é o período de matrícula?</span></li>
+                        <li><span>Como alterar minha senha?</span></li>
+                        <li><span>Onde consulto minhas notas?</span></li>
+                    </ul>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="shared-chat.js"></script>
+    <script>
+        // Variáveis globais
+        let currentCategory = 'academic';
+        let studentId = 'student_' + Date.now();
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            // Verificar se está logado como aluno
+            const userProfile = sessionStorage.getItem('userProfile');
+            if (userProfile !== 'student') {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Inicializar chat
+            initializeStudentChat();
+            
+            // Carregar mensagens em tempo real
+            loadRealTimeMessages();
+        });
+
+        // Navegação entre seções
+        function showSection(sectionId) {
+            // Remover active de todos os itens do menu
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.classList.remove('active');
+            });
+
+            // Remover active de todas as seções
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+
+            // Adicionar active ao item clicado
+            event.currentTarget.classList.add('active');
+
+            // Mostrar seção correspondente
+            document.getElementById(sectionId).classList.add('active');
+        }
+
+        // Selecionar categoria de chat
+        function selectCategory(category) {
+            // Remover active de todas as categorias
+            document.querySelectorAll('.chat-category').forEach(cat => {
+                cat.classList.remove('active');
+            });
+
+            // Adicionar active à categoria selecionada
+            event.currentTarget.classList.add('active');
+
+            currentCategory = category;
+            loadCategoryChat(category);
+        }
+
+        // Carregar chat da categoria
+        function loadCategoryChat(category) {
+            const coordinators = {
+                academic: { name: 'Maria Silva', icon: 'fa-graduation-cap', title: 'Suporte Acadêmico' },
+                administrative: { name: 'João Santos', icon: 'fa-file-alt', title: 'Processos Administrativos' },
+                financial: { name: 'Carlos Lima', icon: 'fa-dollar-sign', title: 'Questões Financeiras' },
+                technical: { name: 'Ana Costa', icon: 'fa-cog', title: 'Suporte Técnico' }
+            };
+
+            const coord = coordinators[category];
+            if (!coord) return;
+
+            // Atualizar header do chat
+            document.querySelector('.contact-avatar i').className = `fas ${coord.icon}`;
+            document.querySelector('.contact-details h4').textContent = `${coord.name} - ${coord.title}`;
+
+            // Limpar mensagens e carregar do localStorage
+            const messagesContainer = document.getElementById('chatMessages');
+            messagesContainer.innerHTML = '';
+
+            // Mensagem de boas-vindas
+            addMessage('received', `Olá! Sou ${coord.name}, ${coord.title.toLowerCase()}. Como posso ajudá-lo hoje?`, getCurrentTime());
+
+            // Carregar mensagens salvas
+            loadSavedMessages(category);
+        }
+
+        // Enviar mensagem
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+
+            // Adicionar mensagem do aluno
+            addMessage('sent', message, getCurrentTime());
+            input.value = '';
+
+            // Salvar mensagem
+            saveMessage(currentCategory, {
+                type: 'sent',
+                message: message,
+                timestamp: new Date().toISOString(),
+                sender: 'student',
+                senderId: studentId
+            });
+
+            // Simular resposta do coordenador após 2-5 segundos
+            setTimeout(() => {
+                showTypingIndicator();
+                setTimeout(() => {
+                    hideTypingIndicator();
+                    const response = generateCoordinatorResponse(message);
+                    addMessage('received', response, getCurrentTime());
+                    
+                    // Salvar resposta
+                    saveMessage(currentCategory, {
+                        type: 'received',
+                        message: response,
+                        timestamp: new Date().toISOString(),
+                        sender: 'coordinator',
+                        senderId: 'coord_' + currentCategory
+                    });
+                }, 2000);
+            }, Math.random() * 3000 + 1000);
+        }
+
+        // Adicionar mensagem à interface
+        function addMessage(type, message, time) {
+            const messagesContainer = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+
+            if (type === 'received') {
+                messageDiv.innerHTML = `
+                    <div class="message-avatar">
+                        ${getCoordinatorInitials(currentCategory)}
+                    </div>
+                    <div class="message-content">
+                        <div class="message-bubble">${message}</div>
+                        <div class="message-time">${time}</div>
+                    </div>
+                `;
+            } else {
+                messageDiv.innerHTML = `
+                    <div class="message-content">
+                        <div class="message-bubble">${message}</div>
+                        <div class="message-time">${time}</div>
+                    </div>
+                `;
+            }
+
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        // Obter iniciais do coordenador
+        function getCoordinatorInitials(category) {
+            const initials = {
+                academic: 'MS',
+                administrative: 'JS',
+                financial: 'CL',
+                technical: 'AC'
+            };
+            return initials[category] || 'CO';
+        }
+
+        // Gerar resposta do coordenador baseada na mensagem
+        function generateCoordinatorResponse(message) {
+            const responses = {
+                default: [
+                    'Entendi sua dúvida. Vou te ajudar com isso.',
+                    'Perfeito! Deixe-me verificar essas informações para você.',
+                    'Essa é uma ótima pergunta. Vou buscar os detalhes.',
+                    'Claro! Posso te orientar sobre esse processo.',
+                    'Vou verificar seu caso específico e te responder em instantes.'
+                ],
+                matricula: [
+                    'O período de matrícula será de 15 a 20 de dezembro. Você receberá as instruções por email.',
+                    'Para a matrícula, acesse o portal acadêmico na data informada e siga o passo a passo.',
+                    'Sua prioridade de matrícula é baseada no seu CR atual. Você terá preferência nas disciplinas.'
+                ],
+                historico: [
+                    'Você pode solicitar seu histórico escolar pelo portal. O processamento leva até 5 dias úteis.',
+                    'Para histórico urgente, compareça na secretaria com documento de identidade.',
+                    'O histórico digital estará disponível em sua área do aluno em até 3 dias úteis.'
+                ],
+                notas: [
+                    'Suas notas são atualizadas automaticamente após o lançamento pelos professores.',
+                    'Para contestar uma nota, você tem até 5 dias após a publicação.',
+                    'Verifique na área do aluno > Boletim para ver suas notas atualizadas.'
+                ]
+            };
+
+            // Detectar palavra-chave na mensagem
+            const msgLower = message.toLowerCase();
+            if (msgLower.includes('matrícula') || msgLower.includes('matricula')) {
+                return responses.matricula[Math.floor(Math.random() * responses.matricula.length)];
+            }
+            if (msgLower.includes('histórico') || msgLower.includes('historico')) {
+                return responses.historico[Math.floor(Math.random() * responses.historico.length)];
+            }
+            if (msgLower.includes('nota') || msgLower.includes('prova')) {
+                return responses.notas[Math.floor(Math.random() * responses.notas.length)];
+            }
+
+            return responses.default[Math.floor(Math.random() * responses.default.length)];
+        }
+
+        // Mostrar indicador de digitação
+        function showTypingIndicator() {
+            const messagesContainer = document.getElementById('chatMessages');
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'typing-indicator';
+            typingDiv.id = 'typingIndicator';
+            typingDiv.innerHTML = '<span></span><span></span><span></span>';
+            messagesContainer.appendChild(typingDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        // Esconder indicador de digitação
+        function hideTypingIndicator() {
+            const typingIndicator = document.getElementById('typingIndicator');
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
+        }
+
+        // Salvar mensagem no localStorage
+        function saveMessage(category, messageData) {
+            const key = `chat_${category}`;
+            let messages = JSON.parse(localStorage.getItem(key) || '[]');
+            messages.push(messageData);
+            
+            // Manter apenas as últimas 50 mensagens
+            if (messages.length > 50) {
+                messages = messages.slice(-50);
+            }
+            
+            localStorage.setItem(key, JSON.stringify(messages));
+        }
+
+        // Carregar mensagens salvas
+        function loadSavedMessages(category) {
+            const key = `chat_${category}`;
+            const messages = JSON.parse(localStorage.getItem(key) || '[]');
+            
+            messages.forEach(msg => {
+                const time = new Date(msg.timestamp).toLocaleTimeString('pt-BR', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                addMessage(msg.type, msg.message, time);
+            });
+        }
+
+        // Carregar mensagens em tempo real (simular)
+        function loadRealTimeMessages() {
+            setInterval(() => {
+                // Verificar se há novas mensagens dos coordenadores
+                // Esta função seria conectada a um backend real
+            }, 5000);
+        }
+
+        // Obter horário atual
+        function getCurrentTime() {
+            return new Date().toLocaleTimeString('pt-BR', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // Manipular Enter no input
+        function handleEnterKey(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        // Inicializar chat do aluno
+        function initializeStudentChat() {
+            // Definir categoria inicial
+            loadCategoryChat('academic');
+        }
+
+        // Logout
+        function logout() {
+            sessionStorage.removeItem('userProfile');
+            sessionStorage.removeItem('loginTime');
+            window.location.href = 'login.html';
+        }
+
+        // Navegação do menu por parâmetros
+        document.querySelectorAll('.menu-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const section = this.getAttribute('onclick').match(/'([^']+)'/)[1];
+                showSection(section);
+            });
+        });
+    </script>
+</body>
+</html> 
