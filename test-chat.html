@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Chat - Fala Alunos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .chat-test {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .chat-test h2 {
+            margin-top: 0;
+            padding: 10px;
+            border-radius: 5px;
+            color: white;
+        }
+        .admin-panel h2 {
+            background: #dc3545;
+        }
+        .student-panel h2 {
+            background: #007bff;
+        }
+        .messages {
+            height: 300px;
+            border: 1px solid #ddd;
+            padding: 10px;
+            overflow-y: auto;
+            margin: 10px 0;
+            background: #f9f9f9;
+        }
+        .message {
+            margin: 5px 0;
+            padding: 8px;
+            border-radius: 5px;
+        }
+        .message.sent {
+            background: #007bff;
+            color: white;
+            text-align: right;
+        }
+        .message.received {
+            background: #e9ecef;
+        }
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+        .input-group input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .input-group button {
+            padding: 10px 20px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .status.connected {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status.disconnected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .controls {
+            margin: 10px 0;
+        }
+        .controls button {
+            margin: 5px;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Teste de Chat em Tempo Real - Fala Alunos</h1>
+    
+    <div class="container">
+        <!-- Painel do Administrador -->
+        <div class="chat-test admin-panel">
+            <h2>👨‍💼 Administrador</h2>
+            <div id="adminStatus" class="status disconnected">❌ Desconectado</div>
+            
+            <div class="controls">
+                <button class="btn-primary" onclick="connectAdmin()">Conectar Admin</button>
+                <button class="btn-danger" onclick="disconnectAdmin()">Desconectar Admin</button>
+            </div>
+            
+            <div id="adminMessages" class="messages"></div>
+            
+            <div class="input-group">
+                <input type="text" id="adminInput" placeholder="Digite sua mensagem como admin..." onkeypress="handleAdminEnter(event)">
+                <button onclick="sendAdminMessage()">Enviar</button>
+            </div>
+        </div>
+        
+        <!-- Painel do Aluno -->
+        <div class="chat-test student-panel">
+            <h2>🎓 Aluno</h2>
+            <div id="studentStatus" class="status disconnected">❌ Desconectado</div>
+            
+            <div class="controls">
+                <button class="btn-primary" onclick="connectStudent()">Conectar Aluno</button>
+                <button class="btn-danger" onclick="disconnectStudent()">Desconectar Aluno</button>
+            </div>
+            
+            <div id="studentMessages" class="messages"></div>
+            
+            <div class="input-group">
+                <input type="text" id="studentInput" placeholder="Digite sua mensagem como aluno..." onkeypress="handleStudentEnter(event)">
+                <button onclick="sendStudentMessage()">Enviar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+    <script>
+        let adminSocket = null;
+        let studentSocket = null;
+        
+        const serverUrl = window.location.hostname === 'localhost' ? 
+            'http://localhost:3000' : 
+            'https://fala-alunos-server.onrender.com';
+            
+        console.log('URL do servidor:', serverUrl);
+
+        // Conectar Admin
+        function connectAdmin() {
+            if (adminSocket) {
+                adminSocket.disconnect();
+            }
+            
+            adminSocket = io(serverUrl);
+            
+            adminSocket.on('connect', () => {
+                console.log('👨‍💼 Admin conectado:', adminSocket.id);
+                updateStatus('admin', 'connected');
+                
+                // Registrar como admin
+                adminSocket.emit('register', {
+                    type: 'admin',
+                    name: 'Admin Teste'
+                });
+            });
+            
+            adminSocket.on('disconnect', () => {
+                console.log('👨‍💼 Admin desconectado');
+                updateStatus('admin', 'disconnected');
+            });
+            
+            adminSocket.on('newMessage', (message) => {
+                console.log('🔔 Admin recebeu mensagem:', message);
+                addMessage('admin', message, false);
+            });
+            
+            adminSocket.on('connect_error', (error) => {
+                console.error('❌ Erro de conexão do admin:', error);
+                updateStatus('admin', 'disconnected');
+            });
+        }
+
+        // Conectar Aluno
+        function connectStudent() {
+            if (studentSocket) {
+                studentSocket.disconnect();
+            }
+            
+            studentSocket = io(serverUrl);
+            
+            studentSocket.on('connect', () => {
+                console.log('🎓 Aluno conectado:', studentSocket.id);
+                updateStatus('student', 'connected');
+                
+                // Registrar como aluno
+                studentSocket.emit('register', {
+                    type: 'student',
+                    name: 'João Silva',
+                    category: 'academic'
+                });
+            });
+            
+            studentSocket.on('disconnect', () => {
+                console.log('🎓 Aluno desconectado');
+                updateStatus('student', 'disconnected');
+            });
+            
+            studentSocket.on('newMessage', (message) => {
+                console.log('📨 Aluno recebeu mensagem:', message);
+                addMessage('student', message, false);
+            });
+            
+            studentSocket.on('connect_error', (error) => {
+                console.error('❌ Erro de conexão do aluno:', error);
+                updateStatus('student', 'disconnected');
+            });
+        }
+
+        // Desconectar
+        function disconnectAdmin() {
+            if (adminSocket) {
+                adminSocket.disconnect();
+                adminSocket = null;
+                updateStatus('admin', 'disconnected');
+            }
+        }
+
+        function disconnectStudent() {
+            if (studentSocket) {
+                studentSocket.disconnect();
+                studentSocket = null;
+                updateStatus('student', 'disconnected');
+            }
+        }
+
+        // Enviar mensagens
+        function sendAdminMessage() {
+            const input = document.getElementById('adminInput');
+            const message = input.value.trim();
+            
+            if (!message || !adminSocket) return;
+            
+            const messageData = {
+                message: message,
+                category: 'academic',
+                senderType: 'admin'
+            };
+            
+            adminSocket.emit('sendMessage', messageData);
+            addMessage('admin', {
+                message: message,
+                senderType: 'admin',
+                senderName: 'Admin Teste',
+                timestamp: new Date().toISOString()
+            }, true);
+            
+            input.value = '';
+        }
+
+        function sendStudentMessage() {
+            const input = document.getElementById('studentInput');
+            const message = input.value.trim();
+            
+            if (!message || !studentSocket) return;
+            
+            const messageData = {
+                message: message,
+                category: 'academic',
+                senderType: 'student'
+            };
+            
+            studentSocket.emit('sendMessage', messageData);
+            addMessage('student', {
+                message: message,
+                senderType: 'student',
+                senderName: 'João Silva',
+                timestamp: new Date().toISOString()
+            }, true);
+            
+            input.value = '';
+        }
+
+        // Atualizar status
+        function updateStatus(type, status) {
+            const element = document.getElementById(`${type}Status`);
+            if (status === 'connected') {
+                element.textContent = '✅ Conectado';
+                element.className = 'status connected';
+            } else {
+                element.textContent = '❌ Desconectado';
+                element.className = 'status disconnected';
+            }
+        }
+
+        // Adicionar mensagem
+        function addMessage(type, message, isSent) {
+            const container = document.getElementById(`${type}Messages`);
+            const messageDiv = document.createElement('div');
+            
+            // Determinar se é mensagem enviada ou recebida
+            const isOwnMessage = (type === 'admin' && message.senderType === 'admin') ||
+                               (type === 'student' && message.senderType === 'student');
+            
+            messageDiv.className = `message ${isSent || isOwnMessage ? 'sent' : 'received'}`;
+            
+            const time = new Date(message.timestamp).toLocaleTimeString('pt-BR', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            
+            messageDiv.innerHTML = `
+                <div><strong>${message.senderName || message.senderType}:</strong></div>
+                <div>${message.message}</div>
+                <div style="font-size: 0.8em; opacity: 0.7;">${time}</div>
+            `;
+            
+            container.appendChild(messageDiv);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // Handlers de Enter
+        function handleAdminEnter(event) {
+            if (event.key === 'Enter') {
+                sendAdminMessage();
+            }
+        }
+
+        function handleStudentEnter(event) {
+            if (event.key === 'Enter') {
+                sendStudentMessage();
+            }
+        }
+
+        // Instruções iniciais
+        document.addEventListener('DOMContentLoaded', () => {
+            const adminMessages = document.getElementById('adminMessages');
+            const studentMessages = document.getElementById('studentMessages');
+            
+            adminMessages.innerHTML = `
+                <div class="message received">
+                    <strong>Sistema:</strong><br>
+                    🔧 Clique em "Conectar Admin" para iniciar o teste<br>
+                    📝 As mensagens dos alunos aparecerão aqui
+                </div>
+            `;
+            
+            studentMessages.innerHTML = `
+                <div class="message received">
+                    <strong>Sistema:</strong><br>
+                    🔧 Clique em "Conectar Aluno" para iniciar o teste<br>
+                    📝 As mensagens dos administradores aparecerão aqui
+                </div>
+            `;
+            
+            console.log('🧪 Página de teste carregada');
+            console.log('🌐 Testando conexão com:', serverUrl);
+        });
+    </script>
+</body>
+</html> 
