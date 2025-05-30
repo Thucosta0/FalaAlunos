@@ -1201,12 +1201,30 @@
             let messages = JSON.parse(localStorage.getItem(key) || '[]');
             messages.push(messageData);
             
-            // Manter apenas as últimas 50 mensagens
-            if (messages.length > 50) {
-                messages = messages.slice(-50);
-            }
+            // Remover limite - permitir mensagens ilimitadas
+            // Comentário: Limite removido para permitir histórico completo
+            // Se houver problemas de performance, descomente a linha abaixo:
+            // if (messages.length > 500) messages = messages.slice(-500);
             
             localStorage.setItem(key, JSON.stringify(messages));
+        }
+
+        // Função para limpar mensagens antigas (opcional)
+        function clearOldMessages(category = null) {
+            if (category) {
+                localStorage.removeItem(`chat_${category}`);
+                console.log(`Mensagens da categoria ${category} removidas`);
+            } else {
+                // Limpar todas as mensagens
+                const keys = Object.keys(localStorage).filter(key => key.startsWith('chat_'));
+                keys.forEach(key => localStorage.removeItem(key));
+                console.log('Todas as mensagens foram removidas');
+            }
+            
+            // Recarregar mensagens na interface
+            if (currentCategory) {
+                loadCategoryChat(currentCategory);
+            }
         }
 
         // Carregar mensagens salvas
