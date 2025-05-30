@@ -685,6 +685,17 @@
                         </div>
 
                         <div class="chat-messages" id="chatMessages">
+                            <!-- Contador de mensagens para admin -->
+                            <div class="admin-message-counter" id="adminMessageCounter">
+                                1 de 1
+                            </div>
+                            
+                            <!-- Indicador de posição no chat -->
+                            <div class="admin-position-indicator" id="adminPositionIndicator"></div>
+                            
+                            <!-- Barra de progresso de scroll -->
+                            <div class="admin-scroll-progress" id="adminScrollProgress"></div>
+                            
                             <div class="message-date">Hoje</div>
                             
                             <div class="message received">
@@ -765,6 +776,11 @@
                                 </button>
                             </div>
                         </div>
+                        
+                        <!-- Botão de scroll para baixo específico para admin -->
+                        <button class="admin-scroll-bottom" id="adminScrollButton" onclick="scrollToBottom()" title="Ir para última mensagem">
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
                     </div>
 
                     <!-- Painel de Informações -->
@@ -818,6 +834,11 @@
                             </div>
                         </div>
                     </div>
+                </div>
+                
+                <!-- Dicas de navegação específicas para admin -->
+                <div class="admin-navigation-hint" id="adminNavigationHint">
+                    Pressione uma tecla para navegar...
                 </div>
             </div>
         </section>
@@ -1140,9 +1161,32 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <!-- Script do Chat Manager (deve vir antes do script principal) -->
     <script src="shared-chat.js"></script>
+    
     <script>
+    // Variáveis globais
+    let currentSection = 'dashboard';
+
+    // Inicializar Chat Manager para Admin
+    window.addEventListener('DOMContentLoaded', function() {
+        // Configurar chat manager para admin
+        if (window.ChatManager) {
+            window.chatManager = new ChatManager('admin', 'Administrador');
+            
+            // Conectar ao servidor
+            window.chatManager.connect();
+            
+            // Adicionar listeners para novas mensagens
+            window.chatManager.onNewMessage((message) => {
+                console.log('Nova mensagem recebida no admin:', message);
+                addMessageToInterface(message);
+            });
+            
+            console.log('✅ Chat Manager inicializado para administrador');
+        }
+    });
+
     // Inicialização
     document.addEventListener('DOMContentLoaded', function() {
         // Verificar se está logado como administrativo E com credenciais válidas
@@ -1183,26 +1227,30 @@
         }, 500);
     });
 
-    // Função sendMessage para chat em tempo real
+    // ========== FUNÇÃO SENDMESSAGE PARA ADMIN ==========
+    
     function sendMessage() {
-        const input = document.getElementById('messageInput');
-        if (!input || !window.chatManager) return;
+        const messageInput = document.getElementById('messageInput');
+        if (!messageInput || !window.chatManager) return;
         
-        const message = input.value.trim();
-        if (!message) return;
+        const content = messageInput.value.trim();
+        if (!content) return;
         
-        // Enviar através do chat manager
-        const success = window.chatManager.sendMessage(window.chatManager.currentCategory, message);
+        // Enviar mensagem através do chat manager
+        const success = window.chatManager.sendMessage(content);
         
         if (success) {
-            input.value = '';
-            console.log('Mensagem enviada pelo administrador:', message);
+            messageInput.value = '';
+            showAdminNotification('Mensagem enviada!', 'success');
+        } else {
+            showAdminNotification('Erro ao enviar mensagem', 'error');
         }
     }
-
-    // Função handleEnterKey para o chat
+    
+    // Função para lidar com Enter no input
     function handleEnterKey(event) {
-        if (event.key === 'Enter') {
+        if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault();
             sendMessage();
         }
     }
@@ -1254,27 +1302,45 @@
     });
 
     // Função para mostrar notificação no admin
-    function showAdminNotification(message) {
+    function showAdminNotification(message, type = 'info') {
         const notification = document.createElement('div');
-        notification.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #27ae60;
-            color: white;
-            padding: 1rem 1.5rem;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            z-index: 10000;
-            font-size: 0.9rem;
-        `;
+        notification.className = `admin-notification ${type}`;
         notification.textContent = message;
+        
+        // Estilos inline para a notificação
+        Object.assign(notification.style, {
+            position: 'fixed',
+            top: '20px',
+            right: '20px',
+            background: type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#007bff',
+            color: 'white',
+            padding: '12px 20px',
+            borderRadius: '6px',
+            fontWeight: '500',
+            zIndex: '10000',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+            transition: 'all 0.3s ease',
+            transform: 'translateX(100%)',
+            opacity: '0'
+        });
+        
         document.body.appendChild(notification);
-
+        
+        // Animação de entrada
         setTimeout(() => {
-            if (notification.parentElement) {
-                notification.remove();
-            }
+            notification.style.transform = 'translateX(0)';
+            notification.style.opacity = '1';
+        }, 100);
+        
+        // Remover após 3 segundos
+        setTimeout(() => {
+            notification.style.transform = 'translateX(100%)';
+            notification.style.opacity = '0';
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 300);
         }, 3000);
     }
 
@@ -1485,6 +1551,351 @@
             alert('Erro ao excluir chat. Tente novamente.');
         }
     }
+
+    // ========== NAVEGAÇÃO E CONTROLES ESPECÍFICOS PARA ADMIN ==========
+    
+    // Adicionar listeners de navegação específicos para admin
+    document.addEventListener('keydown', function(event) {
+        // Verificar se não está digitando em um input
+        if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') return;
+        
+        // Verificar se está na seção de chat
+        if (currentSection !== 'chat') return;
+        
+        if (!window.chatManager) return;
+        
+        switch(event.key) {
+            case 'ArrowUp':
+                if (event.ctrlKey) {
+                    // Ctrl + Up: Navegar para chat anterior
+                    event.preventDefault();
+                    navigateToAdjacentChat('previous');
+                }
+                break;
+                
+            case 'ArrowDown':
+                if (event.ctrlKey) {
+                    // Ctrl + Down: Navegar para próximo chat
+                    event.preventDefault();
+                    navigateToAdjacentChat('next');
+                }
+                break;
+                
+            case 'Home':
+                if (event.ctrlKey) {
+                    // Ctrl + Home: Ir para primeira mensagem
+                    event.preventDefault();
+                    scrollToMessage('first');
+                }
+                break;
+                
+            case 'End':
+                if (event.ctrlKey) {
+                    // Ctrl + End: Ir para última mensagem
+                    event.preventDefault();
+                    scrollToMessage('last');
+                }
+                break;
+                
+            case 'PageUp':
+                // Page Up: Scroll mensagens para cima
+                event.preventDefault();
+                smoothScrollMessages('up');
+                break;
+                
+            case 'PageDown':
+                // Page Down: Scroll mensagens para baixo
+                event.preventDefault();
+                smoothScrollMessages('down');
+                break;
+        }
+    });
+
+    // Navegar entre chats adjacentes
+    function navigateToAdjacentChat(direction) {
+        const chatList = document.getElementById('chatList');
+        if (!chatList) return;
+        
+        const chatItems = chatList.querySelectorAll('.chat-item');
+        const activeChat = chatList.querySelector('.chat-item.active');
+        
+        if (!activeChat || chatItems.length === 0) return;
+        
+        let targetIndex = Array.from(chatItems).indexOf(activeChat);
+        
+        if (direction === 'previous') {
+            targetIndex = targetIndex > 0 ? targetIndex - 1 : chatItems.length - 1;
+        } else {
+            targetIndex = targetIndex < chatItems.length - 1 ? targetIndex + 1 : 0;
+        }
+        
+        const targetChat = chatItems[targetIndex];
+        if (targetChat) {
+            targetChat.click();
+            targetChat.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            
+            // Feedback visual
+            showAdminNotification(`Navegando para: ${targetChat.querySelector('h4').textContent}`);
+        }
+    }
+
+    // Scroll suave nas mensagens
+    function smoothScrollMessages(direction) {
+        const messagesContainer = document.getElementById('chatMessages');
+        if (!messagesContainer) return;
+        
+        const scrollAmount = messagesContainer.clientHeight * 0.7; // 70% da altura visível
+        const currentScroll = messagesContainer.scrollTop;
+        
+        let targetScroll;
+        if (direction === 'up') {
+            targetScroll = Math.max(0, currentScroll - scrollAmount);
+        } else {
+            const maxScroll = messagesContainer.scrollHeight - messagesContainer.clientHeight;
+            targetScroll = Math.min(maxScroll, currentScroll + scrollAmount);
+        }
+        
+        messagesContainer.scrollTo({
+            top: targetScroll,
+            behavior: 'smooth'
+        });
+    }
+
+    // Scroll para mensagem específica
+    function scrollToMessage(position) {
+        const messagesContainer = document.getElementById('chatMessages');
+        if (!messagesContainer) return;
+        
+        if (position === 'first') {
+            messagesContainer.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+            showAdminNotification('Primeira mensagem');
+        } else if (position === 'last') {
+            messagesContainer.scrollTo({
+                top: messagesContainer.scrollHeight,
+                behavior: 'smooth'
+            });
+            showAdminNotification('Última mensagem');
+        }
+    }
+
+    // Atualizar função de mudança de seção para detectar quando está no chat
+    function switchSection(sectionName) {
+        // Esconder todas as seções
+        document.querySelectorAll('.section').forEach(section => {
+            section.classList.remove('active');
+        });
+        
+        // Mostrar seção selecionada
+        const targetSection = document.getElementById(sectionName);
+        if (targetSection) {
+            targetSection.classList.add('active');
+            currentSection = sectionName;
+            
+            // Se for a seção de chat, carregar chats administrativos
+            if (sectionName === 'chat') {
+                setTimeout(() => {
+                    loadAdminChats();
+                    showAdminNotification('Seção de chat carregada - Use Ctrl+↑↓ para navegar');
+                }, 100);
+            }
+        }
+        
+        // Atualizar navegação
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.classList.remove('active');
+        });
+        
+        const activeNavLink = document.querySelector(`[data-section="${sectionName}"]`);
+        if (activeNavLink) {
+            activeNavLink.classList.add('active');
+        }
+    }
+
+    // ========== FUNÇÕES ESPECÍFICAS PARA ELEMENTOS VISUAIS DO ADMIN ==========
+    
+    // Controlar botão de scroll para baixo
+    function initializeAdminScrollButton() {
+        const messagesContainer = document.getElementById('chatMessages');
+        const scrollButton = document.getElementById('adminScrollButton');
+        
+        if (!messagesContainer || !scrollButton) return;
+        
+        messagesContainer.addEventListener('scroll', function() {
+            const isAtBottom = messagesContainer.scrollTop + messagesContainer.clientHeight >= messagesContainer.scrollHeight - 10;
+            
+            if (isAtBottom) {
+                scrollButton.classList.remove('visible');
+            } else {
+                scrollButton.classList.add('visible');
+            }
+            
+            // Atualizar barra de progresso
+            updateScrollProgress();
+            
+            // Atualizar contador de mensagens
+            updateMessageCounter();
+        });
+    }
+    
+    // Scroll para o final
+    function scrollToBottom() {
+        const messagesContainer = document.getElementById('chatMessages');
+        if (messagesContainer) {
+            messagesContainer.scrollTo({
+                top: messagesContainer.scrollHeight,
+                behavior: 'smooth'
+            });
+            showAdminNotification('Última mensagem');
+        }
+    }
+    
+    // Atualizar barra de progresso de scroll
+    function updateScrollProgress() {
+        const messagesContainer = document.getElementById('chatMessages');
+        const progressBar = document.getElementById('adminScrollProgress');
+        
+        if (!messagesContainer || !progressBar) return;
+        
+        const scrollPercentage = (messagesContainer.scrollTop / (messagesContainer.scrollHeight - messagesContainer.clientHeight)) * 100;
+        progressBar.style.height = Math.min(scrollPercentage, 100) + '%';
+    }
+    
+    // Atualizar contador de mensagens visíveis
+    function updateMessageCounter() {
+        const messagesContainer = document.getElementById('chatMessages');
+        const counter = document.getElementById('adminMessageCounter');
+        
+        if (!messagesContainer || !counter) return;
+        
+        const messages = messagesContainer.querySelectorAll('.message:not(.typing)');
+        const visibleMessages = Array.from(messages).filter(msg => {
+            const rect = msg.getBoundingClientRect();
+            const containerRect = messagesContainer.getBoundingClientRect();
+            return rect.top >= containerRect.top && rect.bottom <= containerRect.bottom;
+        });
+        
+        if (messages.length > 0) {
+            counter.textContent = `${visibleMessages.length} de ${messages.length}`;
+            counter.classList.add('visible');
+        } else {
+            counter.classList.remove('visible');
+        }
+    }
+    
+    // Mostrar dica de navegação temporariamente
+    function showNavigationHint(text) {
+        const hint = document.getElementById('adminNavigationHint');
+        if (!hint) return;
+        
+        hint.textContent = text;
+        hint.classList.add('visible');
+        
+        setTimeout(() => {
+            hint.classList.remove('visible');
+        }, 2000);
+    }
+    
+    // Destacar mensagem específica
+    function highlightMessage(messageElement) {
+        // Remover destaque anterior
+        document.querySelectorAll('.message.admin-highlight').forEach(msg => {
+            msg.classList.remove('admin-highlight');
+        });
+        
+        // Adicionar destaque à nova mensagem
+        if (messageElement) {
+            messageElement.classList.add('admin-highlight');
+            messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }
+    
+    // Inicializar elementos visuais quando o chat for carregado
+    function initializeAdminChatElements() {
+        initializeAdminScrollButton();
+        updateScrollProgress();
+        updateMessageCounter();
+        
+        // Mostrar dica inicial
+        setTimeout(() => {
+            showNavigationHint('Use Ctrl+↑↓ para navegar entre chats | Page ↑↓ para rolar mensagens');
+        }, 1000);
+    }
+    
+    // Função melhorada para adicionar mensagem à interface
+    function addMessageToInterface(messageData) {
+        const messagesContainer = document.getElementById('chatMessages');
+        if (!messagesContainer) return;
+        
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${messageData.senderType === 'admin' ? 'sent' : 'received'}`;
+        
+        if (messageData.id) {
+            messageDiv.setAttribute('data-message-id', messageData.id);
+        }
+        
+        const time = new Date(messageData.timestamp).toLocaleTimeString('pt-BR', {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        
+        if (messageData.senderType === 'admin') {
+            messageDiv.innerHTML = `
+                <div class="message-content">
+                    <div class="message-bubble">
+                        ${messageData.content}
+                    </div>
+                    <div class="message-time">${time}</div>
+                </div>
+            `;
+        } else {
+            messageDiv.innerHTML = `
+                <div class="message-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                        ${messageData.content}
+                    </div>
+                    <div class="message-time">${time}</div>
+                </div>
+            `;
+        }
+        
+        messagesContainer.appendChild(messageDiv);
+        
+        // Auto-scroll inteligente para admin
+        const scrollButton = document.getElementById('adminScrollButton');
+        const isAtBottom = !scrollButton || !scrollButton.classList.contains('visible');
+        
+        if (isAtBottom) {
+            setTimeout(() => {
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                updateScrollProgress();
+                updateMessageCounter();
+            }, 100);
+        }
+        
+        // Destacar nova mensagem brevemente
+        setTimeout(() => {
+            highlightMessage(messageDiv);
+        }, 200);
+    }
+    
+    // Atualizar as funções existentes para usar os novos elementos visuais
+    document.addEventListener('DOMContentLoaded', function() {
+        // Inicializar elementos quando a seção de chat for acessada
+        const chatNavLink = document.querySelector('[data-section="chat"]');
+        if (chatNavLink) {
+            chatNavLink.addEventListener('click', function() {
+                setTimeout(() => {
+                    initializeAdminChatElements();
+                }, 500);
+            });
+        }
+    });
     </script>
 </body>
 </html> 
