@@ -232,6 +232,24 @@
             border-right: 1px solid #e9ecef;
             display: flex;
             flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .chat-sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-sidebar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        .chat-sidebar::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
+        }
+
+        .chat-sidebar::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
         }
 
         .chat-sidebar-header {
@@ -242,6 +260,8 @@
         .chat-categories {
             flex: 1;
             padding: 1rem 0;
+            overflow-y: auto;
+            max-height: calc(600px - 120px);
         }
 
         .chat-category {
@@ -355,6 +375,25 @@
             overflow-y: auto;
             background: #f8f9fa;
             max-height: 400px;
+            scroll-behavior: smooth;
+        }
+
+        .chat-messages::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 4px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb:hover {
+            background: #5a6fd8;
         }
 
         .message {
