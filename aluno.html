@@ -933,7 +933,7 @@
                 </div>
                 <div class="menu-item" onclick="showSection('chat')">
                     <i class="fas fa-comments"></i>
-                    <span>Chat com Coordenadores</span>
+                    <span>Chat</span>
                 </div>
                 <div class="menu-item" onclick="showSection('kanban')">
                     <i class="fas fa-tasks"></i>
@@ -1028,7 +1028,7 @@
             <!-- Chat Section -->
             <section id="chat" class="content-section">
                 <div class="section-header">
-                    <h2>Chat com Coordenadores</h2>
+                    <h2>Chat</h2>
                     <p>Escolha a categoria e tire suas dúvidas diretamente com nossos especialistas.</p>
                 </div>
 
@@ -1400,17 +1400,51 @@
                 return;
             }
 
+            // Aguardar RealTimeChatManager estar disponível
+            setTimeout(() => {
+                if (window.RealTimeChatManager) {
+                    console.log('🎓 Inicializando RealTimeChatManager para aluno...');
+                    
+                    // Certificar que o sessionStorage tem o tipo correto
+                    sessionStorage.setItem('userProfile', 'student');
+                    
+                    // Inicializar o RealTimeChatManager
+                    window.chatManager = new RealTimeChatManager();
+                    
+                    // Adicionar listener para novas mensagens
+                    window.chatManager.addMessageListener((message) => {
+                        console.log('Nova mensagem recebida no aluno:', message);
+                        
+                        // Atualizar interface se estiver na categoria correta
+                        if (message.category === currentCategory || !currentCategory) {
+                            updateChatWithNewMessage(message);
+                        }
+                        
+                        // Mostrar notificação se não estiver na conversa ativa
+                        if (message.senderType !== 'student' && message.category !== currentCategory) {
+                            showNotification(`Nova mensagem em ${message.category}`);
+                        }
+                    });
+                    
+                    console.log('✅ Chat Manager do aluno inicializado com sucesso');
+                } else {
+                    console.error('❌ RealTimeChatManager não encontrado');
+                }
+            }, 1000);
+
             // Inicializar chat
             initializeStudentChat();
             
             // Aguardar chat manager estar disponível e restaurar estado
             const waitForChatManager = setInterval(() => {
-                if (window.chatManager && window.chatManager.isOnline()) {
+                if (window.chatManager && window.chatManager.isConnected) {
                     clearInterval(waitForChatManager);
                     
                     // Restaurar estado do chat após conexão
                     setTimeout(() => {
-                        window.restoreChatState();
+                        if (window.restoreChatState) {
+                            window.restoreChatState();
+                        }
                     }, 1000);
                 }
             }, 500);
@@ -2371,6 +2405,53 @@
                 initializeKanban();
             }, 1000);
         });
+
+        // Atualizar chat com nova mensagem em tempo real
+        function updateChatWithNewMessage(message) {
+            const messagesContainer = document.getElementById('chatMessages');
+            if (!messagesContainer) return;
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${message.senderType === 'student' ? 'sent' : 'received'}`;
+            messageDiv.setAttribute('data-message-id', message.id);
+            
+            const time = new Date(message.timestamp).toLocaleTimeString('pt-BR', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            
+            if (message.senderType === 'student') {
+                messageDiv.innerHTML = `
+                    <div class="message-content">
+                        <div class="message-bubble">${message.message}</div>
+                        <div class="message-time">${time}</div>
+                    </div>
+                `;
+            } else {
+                messageDiv.innerHTML = `
+                    <div class="message-avatar">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                    <div class="message-content">
+                        <div class="message-bubble">
+                            <strong>${message.senderName || 'Coordenador'}:</strong><br>
+                            ${message.message}
+                        </div>
+                        <div class="message-time">${time}</div>
+                    </div>
+                `;
+            }
+            
+            messagesContainer.appendChild(messageDiv);
+            
+            // Auto-scroll para a nova mensagem
+            setTimeout(() => {
+                messagesContainer.scrollTo({
+                    top: messagesContainer.scrollHeight,
+                    behavior: 'smooth'
+                });
+            }, 100);
+        }
 
     </script>
 </body>

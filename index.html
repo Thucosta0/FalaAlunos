@@ -1070,28 +1070,24 @@
             if (window.RealTimeChatManager) {
                 clearInterval(checkChatManager);
                 
+                // Certificar que o sessionStorage tem o tipo correto
+                sessionStorage.setItem('userProfile', 'admin');
+                
                 // Inicializar o RealTimeChatManager
                 window.chatManager = new RealTimeChatManager();
-                window.chatManager.userType = 'admin';
-                window.chatManager.userName = 'Administrador';
                 
-                // Inicializar o chat manager
-                window.chatManager.init().then(() => {
-                    console.log('✅ Chat Manager inicializado para administrador');
-                    
-                    // Configurar listeners
-                    window.chatManager.addMessageListener((message) => {
-                        console.log('Nova mensagem recebida no admin:', message);
-                        addMessageToAdminInterface(message);
-                    });
-                    
-                    // Carregar chats após inicialização
-                    setTimeout(() => {
-                        loadAdminChats();
-                    }, 1000);
-                }).catch(error => {
-                    console.error('Erro ao inicializar chat manager:', error);
+                // Adicionar listener para novas mensagens
+                window.chatManager.addMessageListener((message) => {
+                    console.log('Nova mensagem recebida no admin:', message);
+                    addMessageToAdminInterface(message);
                 });
+                
+                console.log('✅ Chat Manager do administrador inicializado com sucesso');
+                
+                // Carregar chats após inicialização
+                setTimeout(() => {
+                    loadAdminChats();
+                }, 1000);
                 
                 adminChatInitialized = true;
             }

@@ -183,6 +183,7 @@ io.on('connection', (socket) => {
     socket.on('register', (userData) => {
         socket.userData = userData;
         
+        // Aceitar tanto 'admin' quanto outros tipos como alunos
         if (userData.type === 'admin') {
             activeUsers.admins.push({
                 id: socket.id,
@@ -190,6 +191,7 @@ io.on('connection', (socket) => {
                 timestamp: new Date()
             });
         } else {
+            // Tratar 'student' e outros tipos como alunos
             activeUsers.students.push({
                 id: socket.id,
                 name: userData.name || 'Aluno',
