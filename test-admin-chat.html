@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Chat Admin - Fala Alunos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        .status.success { background: #d4edda; color: #155724; }
+        .status.error { background: #f8d7da; color: #721c24; }
+        .status.warning { background: #fff3cd; color: #856404; }
+        .status.info { background: #d1ecf1; color: #0c5460; }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #5a6fd8; }
+        .test-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .log {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            padding: 10px;
+            border-radius: 5px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Teste do Chat Administrativo</h1>
+        
+        <div class="test-section">
+            <h3>1. Teste de Conexão do Servidor</h3>
+            <button onclick="testServerConnection()">Testar Conexão</button>
+            <div id="serverStatus" class="status info">Aguardando teste...</div>
+        </div>
+        
+        <div class="test-section">
+            <h3>2. Teste de Inicialização do Chat Manager</h3>
+            <button onclick="testChatManagerInit()">Inicializar Chat Manager</button>
+            <div id="chatManagerStatus" class="status info">Aguardando inicialização...</div>
+        </div>
+        
+        <div class="test-section">
+            <h3>3. Teste de Envio de Mensagem</h3>
+            <input type="text" id="testMessage" class="test-input" placeholder="Digite uma mensagem de teste..." value="Teste do administrador">
+            <button onclick="testSendMessage()">Enviar Mensagem</button>
+            <div id="messageStatus" class="status info">Aguardando envio...</div>
+        </div>
+        
+        <div class="test-section">
+            <h3>4. Log de Atividades</h3>
+            <button onclick="clearLog()">Limpar Log</button>
+            <div id="testLog" class="log">Log vazio...</div>
+        </div>
+        
+        <div class="test-section">
+            <h3>5. Ações Rápidas</h3>
+            <button onclick="simulateAdminLogin()">Simular Login Admin</button>
+            <button onclick="testFunctions()">Testar Todas as Funções</button>
+            <button onclick="openAdminPage()">Abrir Página Admin</button>
+        </div>
+    </div>
+
+    <!-- Scripts necessários -->
+    <script src="shared-chat.js"></script>
+    <script>
+        let testChatManager = null;
+        
+        function log(message, type = 'info') {
+            const logElement = document.getElementById('testLog');
+            const timestamp = new Date().toLocaleTimeString();
+            const colorMap = {
+                info: '#0c5460',
+                success: '#155724',
+                error: '#721c24',
+                warning: '#856404'
+            };
+            
+            logElement.innerHTML += `<div style="color: ${colorMap[type]};">[${timestamp}] ${message}</div>`;
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+        
+        function clearLog() {
+            document.getElementById('testLog').innerHTML = 'Log limpo...';
+        }
+        
+        function updateStatus(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `status ${type}`;
+        }
+        
+        async function testServerConnection() {
+            log('Testando conexão com servidor...', 'info');
+            updateStatus('serverStatus', 'Testando...', 'warning');
+            
+            try {
+                const response = await fetch('http://localhost:3000');
+                if (response.ok) {
+                    log('✅ Servidor respondendo corretamente', 'success');
+                    updateStatus('serverStatus', '✅ Servidor Online', 'success');
+                } else {
+                    log('❌ Servidor retornou erro: ' + response.status, 'error');
+                    updateStatus('serverStatus', '❌ Erro no Servidor', 'error');
+                }
+            } catch (error) {
+                log('❌ Erro ao conectar com servidor: ' + error.message, 'error');
+                updateStatus('serverStatus', '❌ Servidor Offline', 'error');
+            }
+        }
+        
+        function testChatManagerInit() {
+            log('Inicializando Chat Manager...', 'info');
+            updateStatus('chatManagerStatus', 'Inicializando...', 'warning');
+            
+            try {
+                // Simular login administrativo
+                sessionStorage.setItem('userProfile', 'admin');
+                sessionStorage.setItem('adminCredentials', 'validated');
+                
+                if (window.RealTimeChatManager) {
+                    testChatManager = new RealTimeChatManager();
+                    log('✅ Chat Manager criado com sucesso', 'success');
+                    updateStatus('chatManagerStatus', '✅ Chat Manager Inicializado', 'success');
+                    
+                    // Aguardar conexão
+                    setTimeout(() => {
+                        if (testChatManager.isOnline && testChatManager.isOnline()) {
+                            log('✅ Chat Manager conectado', 'success');
+                        } else {
+                            log('⚠️ Chat Manager criado mas não conectado', 'warning');
+                        }
+                    }, 2000);
+                } else {
+                    log('❌ RealTimeChatManager não encontrado', 'error');
+                    updateStatus('chatManagerStatus', '❌ Chat Manager Não Encontrado', 'error');
+                }
+            } catch (error) {
+                log('❌ Erro ao inicializar Chat Manager: ' + error.message, 'error');
+                updateStatus('chatManagerStatus', '❌ Erro na Inicialização', 'error');
+            }
+        }
+        
+        function testSendMessage() {
+            const messageInput = document.getElementById('testMessage');
+            const message = messageInput.value.trim();
+            
+            if (!message) {
+                log('❌ Mensagem vazia', 'error');
+                updateStatus('messageStatus', '❌ Mensagem Vazia', 'error');
+                return;
+            }
+            
+            log(`Enviando mensagem: "${message}"`, 'info');
+            updateStatus('messageStatus', 'Enviando...', 'warning');
+            
+            try {
+                if (testChatManager) {
+                    const success = testChatManager.sendMessage('general', message);
+                    if (success) {
+                        log('✅ Mensagem enviada com sucesso', 'success');
+                        updateStatus('messageStatus', '✅ Mensagem Enviada', 'success');
+                        messageInput.value = '';
+                    } else {
+                        log('❌ Falha ao enviar mensagem', 'error');
+                        updateStatus('messageStatus', '❌ Falha no Envio', 'error');
+                    }
+                } else {
+                    log('❌ Chat Manager não inicializado', 'error');
+                    updateStatus('messageStatus', '❌ Chat Manager Não Inicializado', 'error');
+                }
+            } catch (error) {
+                log('❌ Erro ao enviar mensagem: ' + error.message, 'error');
+                updateStatus('messageStatus', '❌ Erro no Envio', 'error');
+            }
+        }
+        
+        function simulateAdminLogin() {
+            log('Simulando login administrativo...', 'info');
+            
+            sessionStorage.setItem('userProfile', 'admin');
+            sessionStorage.setItem('adminCredentials', 'validated');
+            sessionStorage.setItem('loginTime', new Date().toISOString());
+            sessionStorage.setItem('userId', 'admin_test');
+            
+            log('✅ Login administrativo simulado', 'success');
+        }
+        
+        async function testFunctions() {
+            log('🧪 Iniciando teste completo...', 'info');
+            
+            await testServerConnection();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            testChatManagerInit();
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            document.getElementById('testMessage').value = 'Teste automático do sistema';
+            testSendMessage();
+            
+            log('🏁 Teste completo finalizado', 'info');
+        }
+        
+        function openAdminPage() {
+            log('Abrindo página administrativa...', 'info');
+            
+            // Garantir que está logado
+            simulateAdminLogin();
+            
+            // Abrir página admin
+            window.open('index.html', '_blank');
+        }
+        
+        // Auto-inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            log('🚀 Página de teste carregada', 'info');
+            log('💡 Clique nos botões para testar as funcionalidades', 'info');
+        });
+    </script>
+</body>
+</html> 
