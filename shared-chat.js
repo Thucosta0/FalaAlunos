@@ -1357,4 +1357,11 @@ window.navigateConversations = function(direction) {
     } else if (direction === 'prev') {
         chatManager.navigateToPreviousConversation();
     }
-}; 
+};
+
+// ========== EXPORTAÇÃO PARA USO EM OUTRAS PÁGINAS ==========
+
+// Criar alias para ChatManager (compatibilidade com admin)
+window.ChatManager = RealTimeChatManager;
+
+console.log('✅ shared-chat.js carregado - ChatManager disponível globalmente'); 

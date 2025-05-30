@@ -1918,8 +1918,13 @@
     
     // Função melhorada para adicionar mensagem à interface
     function addMessageToInterface(messageData) {
+        console.log('📨 Adicionando mensagem à interface:', messageData);
+        
         const messagesContainer = document.getElementById('chatMessages');
-        if (!messagesContainer) return;
+        if (!messagesContainer) {
+            console.error('❌ Container de mensagens não encontrado');
+            return;
+        }
         
         const messageDiv = document.createElement('div');
         messageDiv.className = `message ${messageData.senderType === 'admin' ? 'sent' : 'received'}`;
@@ -1928,7 +1933,10 @@
             messageDiv.setAttribute('data-message-id', messageData.id);
         }
         
-        const time = new Date(messageData.timestamp).toLocaleTimeString('pt-BR', {
+        // Obter o conteúdo da mensagem (compatibilidade com diferentes formatos)
+        const messageContent = messageData.content || messageData.message || messageData.text || 'Mensagem vazia';
+        
+        const time = new Date(messageData.timestamp || Date.now()).toLocaleTimeString('pt-BR', {
             hour: '2-digit',
             minute: '2-digit'
         });
@@ -1937,7 +1945,7 @@
             messageDiv.innerHTML = `
                 <div class="message-content">
                     <div class="message-bubble">
-                        ${messageData.content}
+                        ${messageContent}
                     </div>
                     <div class="message-time">${time}</div>
                 </div>
@@ -1949,7 +1957,7 @@
                 </div>
                 <div class="message-content">
                     <div class="message-bubble">
-                        ${messageData.content}
+                        ${messageContent}
                     </div>
                     <div class="message-time">${time}</div>
                 </div>
@@ -1965,15 +1973,19 @@
         if (isAtBottom) {
             setTimeout(() => {
                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
-                updateScrollProgress();
-                updateMessageCounter();
+                if (typeof updateScrollProgress === 'function') updateScrollProgress();
+                if (typeof updateMessageCounter === 'function') updateMessageCounter();
             }, 100);
         }
         
         // Destacar nova mensagem brevemente
         setTimeout(() => {
-            highlightMessage(messageDiv);
+            if (typeof highlightMessage === 'function') {
+                highlightMessage(messageDiv);
+            }
         }, 200);
+        
+        console.log('✅ Mensagem adicionada à interface com sucesso');
     }
     
     // Atualizar as funções existentes para usar os novos elementos visuais
