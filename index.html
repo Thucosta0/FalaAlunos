@@ -1155,6 +1155,20 @@
         initializeChat();
         initializeEditTaskModal();
         initializeAdminChat();
+        
+        // Aguardar chat manager estar disponível e restaurar estado
+        const waitForChatManager = setInterval(() => {
+            if (window.chatManager && window.chatManager.isOnline()) {
+                clearInterval(waitForChatManager);
+                
+                // Restaurar estado do chat após conexão
+                setTimeout(() => {
+                    if (window.restoreChatState) {
+                        window.restoreChatState();
+                    }
+                }, 1000);
+            }
+        }, 500);
     });
 
     // Função sendMessage para chat em tempo real

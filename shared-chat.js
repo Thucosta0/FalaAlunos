@@ -6,13 +6,18 @@ class RealTimeChatManager {
         this.userType = sessionStorage.getItem('userProfile') || 'student';
         this.userId = this.generateUserId();
         this.userName = this.getUserName();
-        this.currentCategory = 'academic';
+        
+        // Recuperar categoria anterior ou usar padrão
+        this.currentCategory = this.getCurrentCategory();
+        
         this.socket = null;
         this.isConnected = false;
         this.messageListeners = [];
         
         // URL do servidor (configurar conforme ambiente)
         this.serverUrl = this.getServerUrl();
+        
+        console.log(`💾 Estado recuperado - Categoria: ${this.currentCategory}`);
         
         this.init();
     }
@@ -187,6 +192,20 @@ class RealTimeChatManager {
         };
 
         this.socket.emit('sendMessage', messageData);
+        
+        // Criar objeto de mensagem para salvar localmente
+        const localMessage = {
+            id: Date.now(), // ID temporário até o servidor confirmar
+            message: messageData.message,
+            category: messageData.category,
+            senderType: this.userType,
+            senderName: this.userName,
+            timestamp: new Date().toISOString()
+        };
+        
+        // Salvar mensagem enviada no localStorage imediatamente
+        this.saveMessageToStorage(localMessage);
+        
         return true;
     }
 
@@ -307,6 +326,9 @@ class RealTimeChatManager {
     handleNewMessage(message) {
         console.log('Nova mensagem recebida:', message);
         
+        // Salvar mensagem automaticamente no localStorage
+        this.saveMessageToStorage(message);
+        
         // Notificar listeners
         this.messageListeners.forEach(listener => {
             if (typeof listener === 'function') {
@@ -321,6 +343,120 @@ class RealTimeChatManager {
 
         // Atualizar interface
         this.updateChatInterface(message);
+    }
+
+    // Salvar mensagem no localStorage
+    saveMessageToStorage(message) {
+        try {
+            const key = `chat_messages_${message.category}`;
+            let messages = JSON.parse(localStorage.getItem(key) || '[]');
+            
+            // Verificar se a mensagem já existe (evitar duplicatas)
+            const exists = messages.some(msg => msg.id === message.id);
+            if (!exists) {
+                messages.push({
+                    id: message.id,
+                    message: message.message,
+                    category: message.category,
+                    senderType: message.senderType,
+                    senderName: message.senderName,
+                    timestamp: message.timestamp
+                });
+                
+                // Salvar no localStorage
+                localStorage.setItem(key, JSON.stringify(messages));
+                console.log(`💾 Mensagem salva no localStorage - Categoria: ${message.category}`);
+            }
+        } catch (error) {
+            console.error('Erro ao salvar mensagem no localStorage:', error);
+        }
+    }
+
+    // Carregar mensagens do localStorage
+    loadMessagesFromStorage(category) {
+        try {
+            const key = `chat_messages_${category}`;
+            const messages = JSON.parse(localStorage.getItem(key) || '[]');
+            console.log(`📂 Carregadas ${messages.length} mensagens do localStorage - Categoria: ${category}`);
+            return messages;
+        } catch (error) {
+            console.error('Erro ao carregar mensagens do localStorage:', error);
+            return [];
+        }
+    }
+
+    // Sincronizar mensagens com o servidor
+    async syncMessagesWithServer(category) {
+        try {
+            console.log(`🔄 Sincronizando mensagens da categoria: ${category}`);
+            
+            // Buscar mensagens do servidor
+            const serverMessages = await this.loadMessages(category);
+            
+            // Buscar mensagens do localStorage
+            const localMessages = this.loadMessagesFromStorage(category);
+            
+            // Combinar e remover duplicatas
+            const allMessages = [...localMessages];
+            
+            serverMessages.forEach(serverMsg => {
+                const exists = allMessages.some(localMsg => localMsg.id === serverMsg.id);
+                if (!exists) {
+                    allMessages.push(serverMsg);
+                }
+            });
+            
+            // Ordenar por timestamp
+            allMessages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+            
+            // Salvar mensagens combinadas no localStorage
+            const key = `chat_messages_${category}`;
+            localStorage.setItem(key, JSON.stringify(allMessages));
+            
+            console.log(`✅ Sincronização completa - ${allMessages.length} mensagens na categoria ${category}`);
+            return allMessages;
+            
+        } catch (error) {
+            console.error('Erro na sincronização:', error);
+            return this.loadMessagesFromStorage(category);
+        }
+    }
+
+    // Salvar estado da categoria atual
+    saveCurrentCategory(category) {
+        try {
+            localStorage.setItem('chat_current_category', category);
+            localStorage.setItem('chat_last_access', new Date().toISOString());
+        } catch (error) {
+            console.error('Erro ao salvar categoria atual:', error);
+        }
+    }
+
+    // Recuperar estado da categoria atual
+    getCurrentCategory() {
+        try {
+            return localStorage.getItem('chat_current_category') || 'academic';
+        } catch (error) {
+            console.error('Erro ao recuperar categoria atual:', error);
+            return 'academic';
+        }
+    }
+
+    // Limpar cache de mensagens
+    clearMessagesCache(category = null) {
+        try {
+            if (category) {
+                localStorage.removeItem(`chat_messages_${category}`);
+                console.log(`🗑️ Cache da categoria ${category} limpo`);
+            } else {
+                // Limpar todas as categorias
+                const keys = Object.keys(localStorage).filter(key => key.startsWith('chat_messages_'));
+                keys.forEach(key => localStorage.removeItem(key));
+                console.log('🗑️ Todo cache de mensagens limpo');
+            }
+        } catch (error) {
+            console.error('Erro ao limpar cache:', error);
+        }
     }
 
     // Manipular indicador de digitação
@@ -568,6 +704,11 @@ class RealTimeChatManager {
     // Definir categoria atual
     setCurrentCategory(category) {
         this.currentCategory = category;
+        
+        // Salvar categoria atual no localStorage
+        this.saveCurrentCategory(category);
+        
+        console.log(`📂 Categoria atual alterada para: ${category}`);
     }
 
     // Determinar URL do servidor baseado no ambiente
@@ -719,4 +860,69 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-}); 
+});
+
+// Função para carregar mensagens persistidas na interface
+window.loadPersistedMessages = async function(category) {
+    if (!chatManager) return;
+    
+    console.log(`🔄 Carregando mensagens persistidas para categoria: ${category}`);
+    
+    try {
+        // Sincronizar com servidor e carregar do cache
+        const messages = await chatManager.syncMessagesWithServer(category);
+        
+        // Limpar container de mensagens
+        const messagesContainer = document.getElementById('chatMessages');
+        if (messagesContainer) {
+            messagesContainer.innerHTML = '';
+            
+            // Adicionar mensagens à interface
+            messages.forEach(message => {
+                addMessageToInterface(message);
+            });
+            
+            console.log(`✅ ${messages.length} mensagens carregadas na interface`);
+        }
+        
+        return messages;
+        
+    } catch (error) {
+        console.error('Erro ao carregar mensagens persistidas:', error);
+        return [];
+    }
+};
+
+// Função para restaurar estado completo do chat
+window.restoreChatState = async function() {
+    if (!chatManager) return;
+    
+    console.log('🔄 Restaurando estado completo do chat...');
+    
+    try {
+        // Recuperar categoria atual
+        const currentCategory = chatManager.getCurrentCategory();
+        
+        // Definir categoria no chat manager
+        chatManager.setCurrentCategory(currentCategory);
+        
+        // Carregar mensagens da categoria atual
+        await window.loadPersistedMessages(currentCategory);
+        
+        // Selecionar categoria na interface (se existir)
+        const categoryElement = document.querySelector(`[data-category="${currentCategory}"]`);
+        if (categoryElement) {
+            // Remover active de outras categorias
+            document.querySelectorAll('.chat-category').forEach(cat => {
+                cat.classList.remove('active');
+            });
+            // Adicionar active à categoria atual
+            categoryElement.classList.add('active');
+        }
+        
+        console.log(`✅ Estado do chat restaurado - Categoria: ${currentCategory}`);
+        
+    } catch (error) {
+        console.error('Erro ao restaurar estado do chat:', error);
+    }
+}; 

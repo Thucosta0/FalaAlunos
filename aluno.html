@@ -1006,6 +1006,18 @@
             // Inicializar chat
             initializeStudentChat();
             
+            // Aguardar chat manager estar disponível e restaurar estado
+            const waitForChatManager = setInterval(() => {
+                if (window.chatManager && window.chatManager.isOnline()) {
+                    clearInterval(waitForChatManager);
+                    
+                    // Restaurar estado do chat após conexão
+                    setTimeout(() => {
+                        window.restoreChatState();
+                    }, 1000);
+                }
+            }, 500);
+            
             // Carregar mensagens em tempo real
             loadRealTimeMessages();
         });
@@ -1046,8 +1058,20 @@
             // Adicionar active à categoria selecionada
             event.currentTarget.classList.add('active');
 
+            // Definir categoria atual no chat manager
+            if (window.chatManager) {
+                window.chatManager.setCurrentCategory(category);
+            }
+
             currentCategory = category;
-            loadCategoryChat(category);
+            
+            // Carregar mensagens persistidas da categoria
+            if (window.loadPersistedMessages) {
+                window.loadPersistedMessages(category);
+            } else {
+                // Fallback para método antigo
+                loadCategoryChat(category);
+            }
         }
 
         // Carregar chat da categoria
