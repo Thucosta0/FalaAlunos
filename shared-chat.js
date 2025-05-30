@@ -527,18 +527,23 @@ class RealTimeChatManager {
             return 'http://localhost:3000';
         }
         
+        // Render - usar o mesmo domínio
+        if (hostname.includes('onrender.com')) {
+            return window.location.origin; // https://falaalunos.onrender.com
+        }
+        
         // Netlify ou outros hosts de produção
         if (hostname.includes('netlify.app') || hostname.includes('netlify.com')) {
-            return 'https://fala-alunos-server.onrender.com';
+            return 'https://falaalunos.onrender.com';
         }
         
         // GitHub Pages
         if (hostname.includes('github.io')) {
-            return 'https://fala-alunos-server.onrender.com';
+            return 'https://falaalunos.onrender.com';
         }
         
         // Outros domínios personalizados
-        return 'https://fala-alunos-server.onrender.com';
+        return 'https://falaalunos.onrender.com';
     }
 }
 

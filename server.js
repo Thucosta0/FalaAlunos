@@ -9,12 +9,29 @@ const server = http.createServer(app);
 // Configurar CORS para permitir conexões do frontend
 const io = socketIo(server, {
     cors: {
-        origin: "*",
-        methods: ["GET", "POST"]
-    }
+        origin: [
+            "http://localhost:3000",
+            "https://falaalunos.onrender.com",
+            "https://*.netlify.app",
+            "https://*.github.io"
+        ],
+        methods: ["GET", "POST", "PUT", "DELETE"],
+        credentials: true
+    },
+    transports: ['websocket', 'polling']
 });
 
-app.use(cors());
+// Configurar CORS para Express
+app.use(cors({
+    origin: [
+        "http://localhost:3000",
+        "https://falaalunos.onrender.com",
+        "https://*.netlify.app",
+        "https://*.github.io"
+    ],
+    credentials: true
+}));
+
 app.use(express.json());
 
 // Servir arquivos estáticos se executando localmente
@@ -205,6 +222,15 @@ io.on('connection', (socket) => {
     });
 });
 
+// Rota de health check para o Render
+app.get('/health', (req, res) => {
+    res.status(200).json({ 
+        status: 'healthy',
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime()
+    });
+});
+
 // Rota para status do servidor
 app.get('/api/status', (req, res) => {
     res.json({
@@ -214,7 +240,10 @@ app.get('/api/status', (req, res) => {
             students: activeUsers.students.length
         },
         totalMessages: messages.length,
-        uptime: process.uptime()
+        totalChats: chats.length,
+        uptime: process.uptime(),
+        environment: process.env.NODE_ENV || 'development',
+        version: '1.0.0'
     });
 });
 
@@ -226,11 +255,13 @@ app.delete('/api/messages', (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
+const HOST = process.env.HOST || '0.0.0.0';
 
-server.listen(PORT, () => {
+server.listen(PORT, HOST, () => {
     console.log(`🚀 Servidor rodando na porta ${PORT}`);
+    console.log(`🌐 Host: ${HOST}`);
     console.log(`📱 Chat em tempo real ativo`);
-    console.log(`🌐 Acesse: http://localhost:${PORT}`);
+    console.log(`🔗 URL: ${process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`}`);
 });
 
 // Graceful shutdown

@@ -1,11 +1,11 @@
 services:
   - type: web
-    name: fala-alunos-server
+    name: falaalunos
     env: node
     plan: free
     buildCommand: npm install
     startCommand: npm start
-    healthCheckPath: /api/status
+    healthCheckPath: /health
     envVars:
       - key: NODE_ENV
         value: production
