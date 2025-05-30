@@ -1698,7 +1698,9 @@
             if (sectionName === 'chat') {
                 setTimeout(() => {
                     loadAdminChats();
-                    showAdminNotification('Seção de chat carregada - Use Ctrl+↑↓ para navegar');
+                    if (window.showAdminNotification) {
+                        showAdminNotification('Seção de chat carregada - Use Ctrl+↑↓ para navegar');
+                    }
                 }, 100);
             }
         }
@@ -1712,6 +1714,8 @@
         if (activeNavLink) {
             activeNavLink.classList.add('active');
         }
+        
+        console.log(`Seção alterada para: ${sectionName}`);
     }
 
     // ========== FUNÇÕES ESPECÍFICAS PARA ELEMENTOS VISUAIS DO ADMIN ==========
@@ -1896,6 +1900,264 @@
             });
         }
     });
+
+    // ========== FUNÇÕES DE NAVEGAÇÃO ==========
+    
+    // Função principal para trocar de seção
+    function switchSection(sectionName) {
+        // Esconder todas as seções
+        document.querySelectorAll('.section').forEach(section => {
+            section.classList.remove('active');
+        });
+        
+        // Mostrar seção selecionada
+        const targetSection = document.getElementById(sectionName);
+        if (targetSection) {
+            targetSection.classList.add('active');
+            currentSection = sectionName;
+            
+            // Se for a seção de chat, carregar chats administrativos
+            if (sectionName === 'chat') {
+                setTimeout(() => {
+                    loadAdminChats();
+                    if (window.showAdminNotification) {
+                        showAdminNotification('Seção de chat carregada - Use Ctrl+↑↓ para navegar');
+                    }
+                }, 100);
+            }
+        }
+        
+        // Atualizar navegação
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.classList.remove('active');
+        });
+        
+        const activeNavLink = document.querySelector(`[data-section="${sectionName}"]`);
+        if (activeNavLink) {
+            activeNavLink.classList.add('active');
+        }
+        
+        console.log(`Seção alterada para: ${sectionName}`);
+    }
+    
+    // Função para inicializar navegação
+    function initializeNavigation() {
+        console.log('Inicializando navegação...');
+        
+        // Configurar links de navegação
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const section = this.getAttribute('data-section');
+                console.log(`Clique detectado na seção: ${section}`);
+                if (section) {
+                    switchSection(section);
+                }
+            });
+        });
+        
+        // Configurar navegação mobile
+        const navToggle = document.querySelector('.nav-toggle');
+        const navMenu = document.querySelector('.nav-menu');
+        
+        if (navToggle && navMenu) {
+            navToggle.addEventListener('click', function() {
+                navMenu.classList.toggle('active');
+            });
+        }
+        
+        console.log('✅ Navegação inicializada com sucesso');
+    }
+    
+    // Função para inicializar gráficos
+    function initializeCharts() {
+        // Performance Chart
+        const performanceCtx = document.getElementById('performanceChart');
+        if (performanceCtx) {
+            new Chart(performanceCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun'],
+                    datasets: [{
+                        label: 'Performance',
+                        data: [65, 59, 80, 81, 56, 85],
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+        
+        // Bar Chart
+        const barCtx = document.getElementById('barChart');
+        if (barCtx) {
+            new Chart(barCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Q1', 'Q2', 'Q3', 'Q4'],
+                    datasets: [{
+                        label: 'Vendas',
+                        data: [45, 60, 75, 90],
+                        backgroundColor: ['#667eea', '#764ba2', '#f093fb', '#f5576c']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+        
+        // Line Chart
+        const lineCtx = document.getElementById('lineChart');
+        if (lineCtx) {
+            new Chart(lineCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun'],
+                    datasets: [{
+                        label: 'Evolução',
+                        data: [30, 45, 60, 70, 65, 80],
+                        borderColor: '#f093fb',
+                        backgroundColor: 'rgba(240, 147, 251, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+        
+        // Comparison Chart
+        const comparisonCtx = document.getElementById('comparisonChart');
+        if (comparisonCtx) {
+            new Chart(comparisonCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['A', 'B', 'C', 'D'],
+                    datasets: [{
+                        data: [35, 25, 25, 15],
+                        backgroundColor: ['#667eea', '#764ba2', '#f093fb', '#f5576c']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+    }
+    
+    // Função para inicializar drag and drop
+    function initializeDragAndDrop() {
+        const cards = document.querySelectorAll('.kanban-card');
+        const columns = document.querySelectorAll('.column-content');
+        
+        cards.forEach(card => {
+            card.addEventListener('dragstart', handleDragStart);
+            card.addEventListener('dragend', handleDragEnd);
+        });
+        
+        columns.forEach(column => {
+            column.addEventListener('dragover', handleDragOver);
+            column.addEventListener('drop', handleDrop);
+        });
+    }
+    
+    function handleDragStart(e) {
+        this.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/html', this.outerHTML);
+    }
+    
+    function handleDragEnd(e) {
+        this.classList.remove('dragging');
+    }
+    
+    function handleDragOver(e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+    }
+    
+    function handleDrop(e) {
+        e.preventDefault();
+        const draggedElement = document.querySelector('.dragging');
+        if (draggedElement) {
+            this.appendChild(draggedElement);
+            updateTaskCounts();
+        }
+    }
+    
+    // Função para inicializar busca
+    function initializeSearch() {
+        const searchInput = document.getElementById('userSearch');
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                const userCards = document.querySelectorAll('.user-card');
+                
+                userCards.forEach(card => {
+                    const userName = card.querySelector('h4').textContent.toLowerCase();
+                    const userEmail = card.querySelector('p').textContent.toLowerCase();
+                    
+                    if (userName.includes(searchTerm) || userEmail.includes(searchTerm)) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        }
+    }
+    
+    // Função para inicializar modais
+    function initializeModals() {
+        // Fechar modais ao clicar no X ou fora do modal
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('close') || e.target.classList.contains('modal')) {
+                const modal = e.target.closest('.modal');
+                if (modal) {
+                    modal.style.display = 'none';
+                }
+            }
+        });
+    }
+    
+    // Função para atualizar contadores de tarefas
+    function updateTaskCounts() {
+        document.querySelectorAll('.kanban-column').forEach(column => {
+            const taskCount = column.querySelectorAll('.kanban-card').length;
+            const countElement = column.querySelector('.task-count');
+            if (countElement) {
+                countElement.textContent = taskCount;
+            }
+        });
+    }
+    
+    // Função para inicializar chat
+    function initializeChat() {
+        // Implementação básica do chat
+        console.log('Chat inicializado');
+    }
+    
+    // Função para inicializar modal de edição
+    function initializeEditTaskModal() {
+        // Implementação básica do modal de edição
+        console.log('Modal de edição inicializado');
+    }
+    
+    // Função para inicializar admin chat
+    function initializeAdminChat() {
+        // Implementação básica do admin chat
+        console.log('Admin chat inicializado');
+    }
     </script>
 </body>
 </html> 
