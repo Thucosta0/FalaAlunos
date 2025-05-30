@@ -2475,4 +2475,36 @@ function importOrganogram(fileInput) {
     };
     
     reader.readAsText(file);
-} 
+}
+
+// Enviar mensagem (versão antiga - renomeada para evitar conflito)
+function sendMessageOld() {
+    const input = document.getElementById('messageInput');
+    const message = input.value.trim();
+    
+    if (!message) return;
+
+    // Adicionar mensagem enviada
+    const newMessage = {
+        id: Date.now(),
+        type: 'sent',
+        message: message,
+        timestamp: new Date(),
+        sender: 'Você'
+    };
+
+    addMessageToChat(currentChatId, newMessage);
+    input.value = '';
+
+    // Simular resposta automática após 2 segundos
+    setTimeout(() => {
+        simulateResponse();
+    }, 2000);
+}
+
+// Manipular Enter no input (versão antiga - renomeada)
+function handleEnterKeyOld(event) {
+    if (event.key === 'Enter') {
+        sendMessageOld();
+    }
+}
