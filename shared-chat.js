@@ -669,10 +669,79 @@ class RealTimeChatManager {
 
     // Atualizar interface do chat
     updateChatInterface(message) {
-        // Implementação específica por página
-        if (typeof window.updateChatMessages === 'function') {
-            window.updateChatMessages(message);
+        // Detectar qual interface usar baseado na página atual
+        const isAdminPage = document.querySelector('#adminChatSection') || document.querySelector('.admin-chat');
+        const isStudentPage = document.querySelector('#chatMessages') && document.querySelector('.student-chat, #studentChatSection');
+        
+        console.log('📨 Atualizando interface com mensagem:', message);
+        console.log('🔍 Admin page:', !!isAdminPage, 'Student page:', !!isStudentPage);
+        
+        if (isAdminPage && typeof addMessageToAdminInterface === 'function') {
+            // Interface do administrador
+            addMessageToAdminInterface(message);
+        } else if (isStudentPage && typeof updateChatWithNewMessage === 'function') {
+            // Interface do aluno
+            updateChatWithNewMessage(message);
+        } else {
+            // Fallback genérico
+            this.addMessageToGenericInterface(message);
         }
+    }
+    
+    // Interface genérica para adicionar mensagens
+    addMessageToGenericInterface(message) {
+        const messagesContainer = document.getElementById('chatMessages');
+        if (!messagesContainer) {
+            console.warn('⚠️ Container de mensagens não encontrado');
+            return;
+        }
+        
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${message.senderType === this.userType ? 'sent' : 'received'}`;
+        messageDiv.setAttribute('data-message-id', message.id);
+        
+        const time = new Date(message.timestamp).toLocaleTimeString('pt-BR', {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        
+        const messageContent = message.message || message.content || message.text || 'Mensagem vazia';
+        
+        if (message.senderType === this.userType) {
+            // Mensagem enviada
+            messageDiv.innerHTML = `
+                <div class="message-content">
+                    <div class="message-bubble">${messageContent}</div>
+                    <div class="message-time">${time}</div>
+                </div>
+            `;
+        } else {
+            // Mensagem recebida
+            messageDiv.innerHTML = `
+                <div class="message-avatar">
+                    <i class="fas ${message.senderType === 'admin' ? 'fa-user-tie' : 'fa-user'}"></i>
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                        <strong>${message.senderName || (message.senderType === 'admin' ? 'Administrador' : 'Aluno')}:</strong><br>
+                        ${messageContent}
+                    </div>
+                    <div class="message-time">${time}</div>
+                </div>
+            `;
+        }
+        
+        messagesContainer.appendChild(messageDiv);
+        
+        // Auto-scroll
+        setTimeout(() => {
+            messagesContainer.scrollTo({
+                top: messagesContainer.scrollHeight,
+                behavior: 'smooth'
+            });
+        }, 100);
+        
+        console.log('✅ Mensagem adicionada via interface genérica');
     }
 
     // Mostrar indicador de digitação
