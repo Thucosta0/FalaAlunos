@@ -625,41 +625,7 @@
                         </div>
                         
                         <div class="chat-list" id="chatList">
-                            <div class="chat-item active" data-chat-id="1">
-                                <div class="chat-avatar">
-                                    <i class="fas fa-graduation-cap"></i>
-                                </div>
-                                <div class="chat-info">
-                                    <h4>Suporte Acadêmico</h4>
-                                    <p>Dúvida sobre matrícula em disciplinas</p>
-                                    <small>Agora</small>
-                                </div>
-                                <div class="chat-status online"></div>
-                            </div>
-                            
-                            <div class="chat-item" data-chat-id="2">
-                                <div class="chat-avatar">
-                                    <i class="fas fa-file-alt"></i>
-                                </div>
-                                <div class="chat-info">
-                                    <h4>Processos Administrativos</h4>
-                                    <p>Solicitação de histórico escolar</p>
-                                    <small>5 min atrás</small>
-                                </div>
-                                <div class="chat-status online"></div>
-                            </div>
-                            
-                            <div class="chat-item" data-chat-id="3">
-                                <div class="chat-avatar">
-                                    <i class="fas fa-lightbulb"></i>
-                                </div>
-                                <div class="chat-info">
-                                    <h4>Canal de Sugestões</h4>
-                                    <p>Ideias para melhoria do sistema</p>
-                                    <small>1 hora atrás</small>
-                                </div>
-                                <div class="chat-status away"></div>
-                            </div>
+                            <!-- Os chats serão carregados dinamicamente pelo JavaScript -->
                         </div>
                     </div>
 
@@ -668,177 +634,41 @@
                         <div class="chat-main-header">
                             <div class="chat-contact-info">
                                 <div class="contact-avatar">
-                                    <i class="fas fa-graduation-cap"></i>
+                                    <i class="fas fa-comments"></i>
                                 </div>
                                 <div class="contact-details">
-                                    <h4>Suporte Acadêmico</h4>
+                                    <h4>Selecione um chat</h4>
                                     <span class="contact-status">
-                                        <i class="fas fa-circle online"></i> Online - Coord. Maria Silva
+                                        <i class="fas fa-circle"></i> Aguardando seleção
                                     </span>
                                 </div>
-                            </div>
-                            <div class="chat-options">
-                                <button class="btn-icon" onclick="toggleChatInfo()">
-                                    <i class="fas fa-info-circle"></i>
-                                </button>
                             </div>
                         </div>
 
                         <div class="chat-messages" id="chatMessages">
-                            <!-- Contador de mensagens para admin -->
-                            <div class="admin-message-counter" id="adminMessageCounter">
-                                1 de 1
-                            </div>
-                            
-                            <!-- Indicador de posição no chat -->
-                            <div class="admin-position-indicator" id="adminPositionIndicator"></div>
-                            
-                            <!-- Barra de progresso de scroll -->
-                            <div class="admin-scroll-progress" id="adminScrollProgress"></div>
-                            
-                            <div class="message-date">Hoje</div>
-                            
+                            <div class="message-date">Bem-vindo ao sistema de chat</div>
                             <div class="message received">
                                 <div class="message-avatar">
-                                    <i class="fas fa-user"></i>
+                                    <i class="fas fa-robot"></i>
                                 </div>
                                 <div class="message-content">
                                     <div class="message-bubble">
-                                        Olá! Bem-vindo ao suporte acadêmico da UniSync. Como posso ajudá-lo hoje?
+                                        Olá! Selecione uma conversa na barra lateral para começar a conversar.
                                     </div>
-                                    <div class="message-time">14:30</div>
-                                </div>
-                            </div>
-
-                            <div class="message sent">
-                                <div class="message-content">
-                                    <div class="message-bubble">
-                                        Olá! Tenho dúvidas sobre o processo de matrícula em disciplinas optativas. Poderia me ajudar?
-                                    </div>
-                                    <div class="message-time">14:32</div>
-                                </div>
-                            </div>
-
-                            <div class="message received">
-                                <div class="message-avatar">
-                                    <i class="fas fa-user"></i>
-                                </div>
-                                <div class="message-content">
-                                    <div class="message-bubble">
-                                        Claro! Ficarei feliz em ajudar. As matrículas em disciplinas optativas seguem algumas etapas específicas. Primeiro, você precisa verificar os pré-requisitos...
-                                    </div>
-                                    <div class="message-time">14:33</div>
-                                </div>
-                            </div>
-
-                            <div class="message received typing">
-                                <div class="message-avatar">
-                                    <i class="fas fa-user"></i>
-                                </div>
-                                <div class="message-content">
-                                    <div class="message-bubble">
-                                        <div class="typing-indicator">
-                                            <span></span>
-                                            <span></span>
-                                            <span></span>
-                                        </div>
-                                    </div>
+                                    <div class="message-time">Agora</div>
                                 </div>
                             </div>
                         </div>
 
                         <div class="chat-input-container">
-                            <div class="quick-responses" id="quickResponses">
-                                <button class="quick-response-btn" onclick="insertQuickResponse('Preciso de ajuda com matrícula')">
-                                    Matrícula
-                                </button>
-                                <button class="quick-response-btn" onclick="insertQuickResponse('Como solicito meu histórico?')">
-                                    Histórico
-                                </button>
-                                <button class="quick-response-btn" onclick="insertQuickResponse('Tenho dúvidas sobre prazos')">
-                                    Prazos
-                                </button>
-                                <button class="quick-response-btn" onclick="insertQuickResponse('Preciso falar sobre financeiro')">
-                                    Financeiro
-                                </button>
-                            </div>
-                            
                             <div class="chat-input">
-                                <button class="btn-icon" onclick="toggleQuickResponses()">
-                                    <i class="fas fa-bolt"></i>
-                                </button>
                                 <input type="text" id="messageInput" placeholder="Digite sua mensagem..." onkeypress="handleEnterKey(event)">
-                                <button class="btn-icon" onclick="attachFile()">
-                                    <i class="fas fa-paperclip"></i>
-                                </button>
                                 <button class="btn-icon" onclick="sendMessage()">
                                     <i class="fas fa-paper-plane"></i>
                                 </button>
                             </div>
                         </div>
-                        
-                        <!-- Botão de scroll para baixo específico para admin -->
-                        <button class="admin-scroll-bottom" id="adminScrollButton" onclick="scrollToBottom()" title="Ir para última mensagem">
-                            <i class="fas fa-chevron-down"></i>
-                        </button>
                     </div>
-
-                    <!-- Painel de Informações -->
-                    <div class="chat-info-panel" id="chatInfoPanel">
-                        <div class="info-panel-header">
-                            <h3>Informações do Atendimento</h3>
-                            <button class="btn-icon" onclick="toggleChatInfo()">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </div>
-                        
-                        <div class="info-panel-content">
-                            <div class="info-section">
-                                <h4>Categoria</h4>
-                                <span class="info-tag academic">Suporte Acadêmico</span>
-                            </div>
-                            
-                            <div class="info-section">
-                                <h4>Coordenador Responsável</h4>
-                                <div class="coordinator-info">
-                                    <div class="coordinator-avatar">
-                                        <i class="fas fa-user"></i>
-                                    </div>
-                                    <div>
-                                        <strong>Maria Silva</strong>
-                                        <p>Coordenadora Acadêmica</p>
-                                        <span class="status-indicator online">Online</span>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="info-section">
-                                <h4>Horário de Atendimento</h4>
-                                <p>Segunda a Sexta: 8h às 18h<br>
-                                Sábado: 8h às 12h</p>
-                            </div>
-                            
-                            <div class="info-section">
-                                <h4>Ações Rápidas</h4>
-                                <div class="quick-actions">
-                                    <button class="quick-action-btn" onclick="rateChat()">
-                                        <i class="fas fa-star"></i> Avaliar Atendimento
-                                    </button>
-                                    <button class="quick-action-btn" onclick="requestCallback()">
-                                        <i class="fas fa-phone"></i> Solicitar Retorno
-                                    </button>
-                                    <button class="quick-action-btn" onclick="escalateChat()">
-                                        <i class="fas fa-arrow-up"></i> Falar com Supervisor
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Dicas de navegação específicas para admin -->
-                <div class="admin-navigation-hint" id="adminNavigationHint">
-                    Pressione uma tecla para navegar...
                 </div>
             </div>
         </section>
@@ -1220,102 +1050,39 @@
 
         console.log('📱 Inicializando sistema de chat administrativo...');
         
-        // Aguardar ChatManager estar disponível
+        // Aguardar RealTimeChatManager estar disponível
         const checkChatManager = setInterval(() => {
-            if (window.ChatManager) {
+            if (window.RealTimeChatManager) {
                 clearInterval(checkChatManager);
                 
-                // Inicializar o ChatManager
-                window.chatManager = new ChatManager('admin', 'Administrador');
+                // Inicializar o RealTimeChatManager
+                window.chatManager = new RealTimeChatManager();
+                window.chatManager.userType = 'admin';
+                window.chatManager.userName = 'Administrador';
                 
-                // Conectar ao servidor
-                window.chatManager.connect();
-                
-                // Configurar listeners
-                window.chatManager.onNewMessage((message) => {
-                    console.log('Nova mensagem recebida no admin:', message);
-                    addMessageToInterface(message);
+                // Inicializar o chat manager
+                window.chatManager.init().then(() => {
+                    console.log('✅ Chat Manager inicializado para administrador');
+                    
+                    // Configurar listeners
+                    window.chatManager.addMessageListener((message) => {
+                        console.log('Nova mensagem recebida no admin:', message);
+                        addMessageToAdminInterface(message);
+                    });
+                    
+                    // Carregar chats após inicialização
+                    setTimeout(() => {
+                        loadAdminChats();
+                    }, 1000);
+                }).catch(error => {
+                    console.error('Erro ao inicializar chat manager:', error);
                 });
-                
-                console.log('✅ Chat Manager inicializado para administrador');
-                
-                // Aguardar conexão
-                const waitForConnection = setInterval(() => {
-                    if (window.chatManager && window.chatManager.isOnline()) {
-                        clearInterval(waitForConnection);
-                        console.log('🔄 Chat Manager conectado, configurando admin...');
-                        
-                        // Carregar chats após conexão
-                        setTimeout(() => {
-                            loadAdminChats();
-                            setupChatNavigation();
-                        }, 1000);
-                    }
-                }, 500);
                 
                 adminChatInitialized = true;
             }
         }, 100);
     }
 
-    // Configurar navegação do chat
-    function setupChatNavigation() {
-        // Listener para navegação entre chats
-        document.addEventListener('keydown', function(event) {
-            if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') return;
-            if (currentSection !== 'chat') return;
-            if (!window.chatManager) return;
-            
-            switch(event.key) {
-                case 'ArrowUp':
-                    if (event.ctrlKey) {
-                        event.preventDefault();
-                        navigateToAdjacentChat('previous');
-                    }
-                    break;
-                case 'ArrowDown':
-                    if (event.ctrlKey) {
-                        event.preventDefault();
-                        navigateToAdjacentChat('next');
-                    }
-                    break;
-                case 'Home':
-                    if (event.ctrlKey) {
-                        event.preventDefault();
-                        scrollToMessage('first');
-                    }
-                    break;
-                case 'End':
-                    if (event.ctrlKey) {
-                        event.preventDefault();
-                        scrollToMessage('last');
-                    }
-                    break;
-                case 'PageUp':
-                    event.preventDefault();
-                    smoothScrollMessages('up');
-                    break;
-                case 'PageDown':
-                    event.preventDefault();
-                    smoothScrollMessages('down');
-                    break;
-            }
-        });
-
-        // Listener para clique na seção de chat
-        const chatNavLink = document.querySelector('[data-section="chat"]');
-        if (chatNavLink) {
-            chatNavLink.addEventListener('click', function() {
-                setTimeout(() => {
-                    console.log('🔄 Seção de chat acessada, recarregando chats...');
-                    loadAdminChats();
-                }, 100);
-            });
-        }
-    }
-
-    // ========== FUNÇÕES DE CHAT ==========
-    
     // Carregar chats administrativos
     async function loadAdminChats() {
         if (!window.chatManager) {
@@ -1328,11 +1095,153 @@
             const chats = await window.chatManager.loadChats();
             console.log('Chats carregados:', chats);
             
-            updateChatList(chats);
+            updateAdminChatList(chats);
             
         } catch (error) {
             console.error('❌ Erro ao carregar chats:', error);
         }
+    }
+
+    // Atualizar lista de chats na interface administrativa
+    function updateAdminChatList(chats) {
+        const chatList = document.getElementById('chatList');
+        if (!chatList) return;
+
+        // Limpar lista atual
+        chatList.innerHTML = '';
+        
+        // Adicionar chats dinâmicos
+        chats.forEach(chat => {
+            const chatItem = document.createElement('div');
+            chatItem.className = 'chat-item';
+            chatItem.setAttribute('data-chat-id', chat.id);
+            
+            const priorityIcon = chat.priority === 'high' ? '🔴' : chat.priority === 'medium' ? '🟡' : '🟢';
+            const categoryIcon = getCategoryIcon(chat.category);
+            
+            chatItem.innerHTML = `
+                <div class="chat-avatar">
+                    <i class="fas ${categoryIcon}"></i>
+                </div>
+                <div class="chat-info">
+                    <h4>${chat.title} ${priorityIcon}</h4>
+                    <p>${chat.description || 'Sem descrição'}</p>
+                    <small>${formatTimeAgo(chat.createdAt)} - por ${chat.createdBy}</small>
+                </div>
+                <div class="chat-status online"></div>
+            `;
+            
+            chatItem.addEventListener('click', () => {
+                // Remover active de outros chats
+                chatList.querySelectorAll('.chat-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+                
+                // Adicionar active ao chat clicado
+                chatItem.classList.add('active');
+                
+                // Abrir chat
+                openAdminChat(chat);
+            });
+            
+            chatList.appendChild(chatItem);
+        });
+        
+        console.log(`${chats.length} chats carregados na interface administrativa`);
+    }
+
+    // Abrir chat administrativo
+    function openAdminChat(chat) {
+        console.log('Abrindo chat administrativo:', chat);
+        
+        // Atualizar header do chat
+        const contactInfo = document.querySelector('.chat-contact-info');
+        if (contactInfo) {
+            contactInfo.innerHTML = `
+                <div class="contact-avatar">
+                    <i class="fas ${getCategoryIcon(chat.category)}"></i>
+                </div>
+                <div class="contact-details">
+                    <h4>${chat.title}</h4>
+                    <span class="contact-status">
+                        <i class="fas fa-circle online"></i> Chat criado por ${chat.createdBy} - ${chat.priority} prioridade
+                    </span>
+                </div>
+            `;
+        }
+        
+        // Limpar mensagens e carregar as específicas do chat
+        const messagesContainer = document.getElementById('chatMessages');
+        if (messagesContainer) {
+            messagesContainer.innerHTML = `
+                <div class="message-date">Chat: ${chat.title}</div>
+                <div class="message received">
+                    <div class="message-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="message-content">
+                        <div class="message-bubble">
+                            ${chat.description || 'Chat iniciado'}
+                        </div>
+                        <div class="message-time">${formatTimeAgo(chat.createdAt)}</div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Atualizar categoria atual do chat manager
+        if (window.chatManager) {
+            window.chatManager.setCurrentCategory && window.chatManager.setCurrentCategory(chat.category);
+        }
+    }
+
+    // Adicionar mensagem à interface administrativa
+    function addMessageToAdminInterface(messageData) {
+        console.log('📨 Adicionando mensagem à interface administrativa:', messageData);
+        
+        const messagesContainer = document.getElementById('chatMessages');
+        if (!messagesContainer) {
+            console.error('❌ Container de mensagens não encontrado');
+            return;
+        }
+        
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${messageData.senderType === 'admin' ? 'sent' : 'received'}`;
+        
+        const messageContent = messageData.content || messageData.message || messageData.text || 'Mensagem vazia';
+        
+        const time = new Date(messageData.timestamp || Date.now()).toLocaleTimeString('pt-BR', {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        
+        if (messageData.senderType === 'admin') {
+            messageDiv.innerHTML = `
+                <div class="message-content">
+                    <div class="message-bubble">
+                        ${messageContent}
+                    </div>
+                    <div class="message-time">${time}</div>
+                </div>
+            `;
+        } else {
+            messageDiv.innerHTML = `
+                <div class="message-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                        ${messageContent}
+                    </div>
+                    <div class="message-time">${time}</div>
+                </div>
+            `;
+        }
+        
+        messagesContainer.appendChild(messageDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        
+        console.log('✅ Mensagem adicionada à interface administrativa');
     }
 
     // Configurar formulário de novo chat
@@ -1372,17 +1281,27 @@
     // Enviar mensagem
     function sendMessage() {
         const messageInput = document.getElementById('messageInput');
-        if (!messageInput || !window.chatManager) return;
+        if (!messageInput || !window.chatManager) {
+            console.error('Input de mensagem ou chat manager não disponível');
+            return;
+        }
         
         const content = messageInput.value.trim();
         if (!content) return;
         
-        const success = window.chatManager.sendMessage(content);
-        
-        if (success) {
-            messageInput.value = '';
-            showAdminNotification('Mensagem enviada!', 'success');
-        } else {
+        try {
+            // Enviar mensagem através do chat manager
+            const success = window.chatManager.sendMessage('general', content);
+            
+            if (success) {
+                messageInput.value = '';
+                console.log('Mensagem enviada pelo admin:', content);
+                showAdminNotification('Mensagem enviada!', 'success');
+            } else {
+                showAdminNotification('Erro ao enviar mensagem', 'error');
+            }
+        } catch (error) {
+            console.error('Erro ao enviar mensagem:', error);
             showAdminNotification('Erro ao enviar mensagem', 'error');
         }
     }
@@ -1448,68 +1367,7 @@
         }, 3000);
     }
 
-    // Atualizar lista de chats na interface
-    function updateChatList(chats) {
-        const chatList = document.getElementById('chatList');
-        if (!chatList) return;
-
-        // Remover apenas chats dinâmicos existentes (manter os estáticos)
-        const dynamicChats = chatList.querySelectorAll('.chat-item[data-dynamic="true"]');
-        dynamicChats.forEach(chat => chat.remove());
-        
-        // Adicionar chats dinâmicos
-        chats.forEach(chat => {
-            const chatItem = document.createElement('div');
-            chatItem.className = 'chat-item';
-            chatItem.setAttribute('data-chat-id', chat.id);
-            chatItem.setAttribute('data-dynamic', 'true');
-            
-            const priorityIcon = chat.priority === 'high' ? '🔴' : chat.priority === 'medium' ? '🟡' : '🟢';
-            const categoryIcon = getCategoryIcon(chat.category);
-            
-            chatItem.innerHTML = `
-                <div class="chat-avatar">
-                    <i class="fas ${categoryIcon}"></i>
-                </div>
-                <div class="chat-info">
-                    <h4>${chat.title} ${priorityIcon}</h4>
-                    <p>${chat.description || 'Sem descrição'}</p>
-                    <small>${formatTimeAgo(chat.createdAt)} - por ${chat.createdBy}</small>
-                </div>
-                <div class="chat-status online"></div>
-                <div class="chat-actions" style="position: absolute; top: 10px; right: 10px;">
-                    <button onclick="deleteChatConfirm(${chat.id}, '${chat.title}')" style="background: #e74c3c; color: white; border: none; border-radius: 4px; padding: 4px 6px; font-size: 10px; cursor: pointer;" title="Excluir chat">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
-            `;
-            
-            // Adicionar estilo de posição relativa
-            chatItem.style.position = 'relative';
-            
-            chatItem.addEventListener('click', (e) => {
-                // Prevenir clique se clicar no botão de exclusão
-                if (e.target.closest('.chat-actions')) return;
-                
-                // Remover active de outros chats
-                chatList.querySelectorAll('.chat-item').forEach(item => {
-                    item.classList.remove('active');
-                });
-                
-                // Adicionar active ao chat clicado
-                chatItem.classList.add('active');
-                
-                // Abrir chat
-                openDynamicChat(chat);
-            });
-            
-            chatList.appendChild(chatItem);
-        });
-        
-        console.log(`${chats.length} chats dinâmicos adicionados à lista`);
-    }
-
-    // Obter ícone da categoria
+    // Funções auxiliares
     function getCategoryIcon(category) {
         const icons = {
             academic: 'fa-graduation-cap',
@@ -1521,7 +1379,6 @@
         return icons[category] || 'fa-comments';
     }
 
-    // Formatar tempo relativo
     function formatTimeAgo(dateString) {
         const date = new Date(dateString);
         const now = new Date();
@@ -1533,53 +1390,17 @@
         return `${Math.floor(diffInMinutes / 1440)} dias atrás`;
     }
 
-    // Abrir chat dinâmico
-    function openDynamicChat(chat) {
-        console.log('Abrindo chat:', chat);
-        
-        // Atualizar header do chat
-        const contactInfo = document.querySelector('.chat-contact-info');
-        if (contactInfo) {
-            contactInfo.innerHTML = `
-                <div class="contact-avatar">
-                    <i class="fas ${getCategoryIcon(chat.category)}"></i>
-                </div>
-                <div class="contact-details">
-                    <h4>${chat.title}</h4>
-                    <span class="contact-status">
-                        <i class="fas fa-circle online"></i> Chat criado por ${chat.createdBy} - ${chat.priority} prioridade
-                    </span>
-                </div>
-            `;
+    // Carregar chats quando a seção de chat for acessada
+    document.addEventListener('DOMContentLoaded', function() {
+        const chatNavLink = document.querySelector('[data-section="chat"]');
+        if (chatNavLink) {
+            chatNavLink.addEventListener('click', function() {
+                setTimeout(() => {
+                    loadAdminChats();
+                }, 100);
+            });
         }
-        
-        // Limpar mensagens e carregar as específicas do chat
-        const messagesContainer = document.getElementById('chatMessages');
-        if (messagesContainer) {
-            messagesContainer.innerHTML = `
-                <div class="message-date">Chat: ${chat.title}</div>
-                <div class="message received">
-                    <div class="message-avatar">
-                        <i class="fas fa-user"></i>
-                    </div>
-                    <div class="message-content">
-                        <div class="message-bubble">
-                            ${chat.description || 'Chat iniciado'}
-                        </div>
-                        <div class="message-time">${formatTimeAgo(chat.createdAt)}</div>
-                    </div>
-                </div>
-            `;
-        }
-        
-        // Atualizar categoria atual do chat manager
-        if (window.chatManager) {
-            window.chatManager.setCurrentCategory(chat.category);
-        }
-    }
-
-    // Carregar chats quando a página carrega
-    window.addEventListener('load', loadAdminChats);
+    });
 
     // Listener para novos chats criados
     window.addEventListener('newChatCreated', function(event) {
@@ -1588,420 +1409,7 @@
         loadAdminChats();
     });
 
-    // Listener para quando a seção de chat for acessada
-    document.addEventListener('DOMContentLoaded', function() {
-        const chatNavLink = document.querySelector('[data-section="chat"]');
-        if (chatNavLink) {
-            chatNavLink.addEventListener('click', function() {
-                setTimeout(() => {
-                    loadAdminChats();
-                }, 100);
-            });
-        }
-    });
-
-    // Função para confirmar exclusão de chat
-    function deleteChatConfirm(chatId, chatTitle) {
-        if (confirm(`Tem certeza que deseja excluir o chat "${chatTitle}"?\n\nEsta ação não pode ser desfeita e afetará todos os usuários.`)) {
-            deleteAdminChat(chatId);
-        }
-    }
-
-    // Função para excluir chat (admin)
-    async function deleteAdminChat(chatId) {
-        if (!window.chatManager) {
-            alert('Sistema de chat não está conectado');
-            return;
-        }
-
-        try {
-            const deleted = await window.chatManager.deleteChat(chatId);
-            if (deleted) {
-                showAdminNotification('Chat excluído com sucesso!');
-                
-                // Recarregar lista de chats
-                await loadAdminChats();
-                
-                // Se o chat excluído estava selecionado, voltar para o chat padrão
-                const activeChat = document.querySelector('.chat-item[data-dynamic="true"].active');
-                if (!activeChat) {
-                    // Selecionar o primeiro chat estático
-                    const firstStaticChat = document.querySelector('.chat-item:not([data-dynamic])');
-                    if (firstStaticChat) {
-                        firstStaticChat.click();
-                    }
-                }
-            } else {
-                alert('Erro ao excluir chat. Tente novamente.');
-            }
-        } catch (error) {
-            console.error('Erro ao excluir chat:', error);
-            alert('Erro ao excluir chat. Tente novamente.');
-        }
-    }
-
-    // ========== NAVEGAÇÃO E CONTROLES ESPECÍFICOS PARA ADMIN ==========
-    
-    // Adicionar listeners de navegação específicos para admin
-    document.addEventListener('keydown', function(event) {
-        // Verificar se não está digitando em um input
-        if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') return;
-        
-        // Verificar se está na seção de chat
-        if (currentSection !== 'chat') return;
-        
-        if (!window.chatManager) return;
-        
-        switch(event.key) {
-            case 'ArrowUp':
-                if (event.ctrlKey) {
-                    // Ctrl + Up: Navegar para chat anterior
-                    event.preventDefault();
-                    navigateToAdjacentChat('previous');
-                }
-                break;
-                
-            case 'ArrowDown':
-                if (event.ctrlKey) {
-                    // Ctrl + Down: Navegar para próximo chat
-                    event.preventDefault();
-                    navigateToAdjacentChat('next');
-                }
-                break;
-                
-            case 'Home':
-                if (event.ctrlKey) {
-                    // Ctrl + Home: Ir para primeira mensagem
-                    event.preventDefault();
-                    scrollToMessage('first');
-                }
-                break;
-                
-            case 'End':
-                if (event.ctrlKey) {
-                    // Ctrl + End: Ir para última mensagem
-                    event.preventDefault();
-                    scrollToMessage('last');
-                }
-                break;
-                
-            case 'PageUp':
-                // Page Up: Scroll mensagens para cima
-                event.preventDefault();
-                smoothScrollMessages('up');
-                break;
-                
-            case 'PageDown':
-                // Page Down: Scroll mensagens para baixo
-                event.preventDefault();
-                smoothScrollMessages('down');
-                break;
-        }
-    });
-
-    // Navegar entre chats adjacentes
-    function navigateToAdjacentChat(direction) {
-        const chatList = document.getElementById('chatList');
-        if (!chatList) return;
-        
-        const chatItems = chatList.querySelectorAll('.chat-item');
-        const activeChat = chatList.querySelector('.chat-item.active');
-        
-        if (!activeChat || chatItems.length === 0) return;
-        
-        let targetIndex = Array.from(chatItems).indexOf(activeChat);
-        
-        if (direction === 'previous') {
-            targetIndex = targetIndex > 0 ? targetIndex - 1 : chatItems.length - 1;
-        } else {
-            targetIndex = targetIndex < chatItems.length - 1 ? targetIndex + 1 : 0;
-        }
-        
-        const targetChat = chatItems[targetIndex];
-        if (targetChat) {
-            targetChat.click();
-            targetChat.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            
-            // Feedback visual
-            showAdminNotification(`Navegando para: ${targetChat.querySelector('h4').textContent}`);
-        }
-    }
-
-    // Scroll suave nas mensagens
-    function smoothScrollMessages(direction) {
-        const messagesContainer = document.getElementById('chatMessages');
-        if (!messagesContainer) return;
-        
-        const scrollAmount = messagesContainer.clientHeight * 0.7; // 70% da altura visível
-        const currentScroll = messagesContainer.scrollTop;
-        
-        let targetScroll;
-        if (direction === 'up') {
-            targetScroll = Math.max(0, currentScroll - scrollAmount);
-        } else {
-            const maxScroll = messagesContainer.scrollHeight - messagesContainer.clientHeight;
-            targetScroll = Math.min(maxScroll, currentScroll + scrollAmount);
-        }
-        
-        messagesContainer.scrollTo({
-            top: targetScroll,
-            behavior: 'smooth'
-        });
-    }
-
-    // Scroll para mensagem específica
-    function scrollToMessage(position) {
-        const messagesContainer = document.getElementById('chatMessages');
-        if (!messagesContainer) return;
-        
-        if (position === 'first') {
-            messagesContainer.scrollTo({
-                top: 0,
-                behavior: 'smooth'
-            });
-            showAdminNotification('Primeira mensagem');
-        } else if (position === 'last') {
-            messagesContainer.scrollTo({
-                top: messagesContainer.scrollHeight,
-                behavior: 'smooth'
-            });
-            showAdminNotification('Última mensagem');
-        }
-    }
-
-    // Atualizar função de mudança de seção para detectar quando está no chat
-    function switchSection(sectionName) {
-        // Esconder todas as seções
-        document.querySelectorAll('.section').forEach(section => {
-            section.classList.remove('active');
-        });
-        
-        // Mostrar seção selecionada
-        const targetSection = document.getElementById(sectionName);
-        if (targetSection) {
-            targetSection.classList.add('active');
-            currentSection = sectionName;
-            
-            // Se for a seção de chat, carregar chats administrativos
-            if (sectionName === 'chat') {
-                setTimeout(() => {
-                    loadAdminChats();
-                    if (window.showAdminNotification) {
-                        showAdminNotification('Seção de chat carregada - Use Ctrl+↑↓ para navegar');
-                    }
-                }, 100);
-            }
-        }
-        
-        // Atualizar navegação
-        document.querySelectorAll('.nav-link').forEach(link => {
-            link.classList.remove('active');
-        });
-        
-        const activeNavLink = document.querySelector(`[data-section="${sectionName}"]`);
-        if (activeNavLink) {
-            activeNavLink.classList.add('active');
-        }
-        
-        console.log(`Seção alterada para: ${sectionName}`);
-    }
-
-    // ========== FUNÇÕES ESPECÍFICAS PARA ELEMENTOS VISUAIS DO ADMIN ==========
-    
-    // Controlar botão de scroll para baixo
-    function initializeAdminScrollButton() {
-        const messagesContainer = document.getElementById('chatMessages');
-        const scrollButton = document.getElementById('adminScrollButton');
-        
-        if (!messagesContainer || !scrollButton) return;
-        
-        messagesContainer.addEventListener('scroll', function() {
-            const isAtBottom = messagesContainer.scrollTop + messagesContainer.clientHeight >= messagesContainer.scrollHeight - 10;
-            
-            if (isAtBottom) {
-                scrollButton.classList.remove('visible');
-            } else {
-                scrollButton.classList.add('visible');
-            }
-            
-            // Atualizar barra de progresso
-            updateScrollProgress();
-            
-            // Atualizar contador de mensagens
-            updateMessageCounter();
-        });
-    }
-    
-    // Scroll para o final
-    function scrollToBottom() {
-        const messagesContainer = document.getElementById('chatMessages');
-        if (messagesContainer) {
-            messagesContainer.scrollTo({
-                top: messagesContainer.scrollHeight,
-                behavior: 'smooth'
-            });
-            showAdminNotification('Última mensagem');
-        }
-    }
-    
-    // Atualizar barra de progresso de scroll
-    function updateScrollProgress() {
-        const messagesContainer = document.getElementById('chatMessages');
-        const progressBar = document.getElementById('adminScrollProgress');
-        
-        if (!messagesContainer || !progressBar) return;
-        
-        const scrollPercentage = (messagesContainer.scrollTop / (messagesContainer.scrollHeight - messagesContainer.clientHeight)) * 100;
-        progressBar.style.height = Math.min(scrollPercentage, 100) + '%';
-    }
-    
-    // Atualizar contador de mensagens visíveis
-    function updateMessageCounter() {
-        const messagesContainer = document.getElementById('chatMessages');
-        const counter = document.getElementById('adminMessageCounter');
-        
-        if (!messagesContainer || !counter) return;
-        
-        const messages = messagesContainer.querySelectorAll('.message:not(.typing)');
-        const visibleMessages = Array.from(messages).filter(msg => {
-            const rect = msg.getBoundingClientRect();
-            const containerRect = messagesContainer.getBoundingClientRect();
-            return rect.top >= containerRect.top && rect.bottom <= containerRect.bottom;
-        });
-        
-        if (messages.length > 0) {
-            counter.textContent = `${visibleMessages.length} de ${messages.length}`;
-            counter.classList.add('visible');
-        } else {
-            counter.classList.remove('visible');
-        }
-    }
-    
-    // Mostrar dica de navegação temporariamente
-    function showNavigationHint(text) {
-        const hint = document.getElementById('adminNavigationHint');
-        if (!hint) return;
-        
-        hint.textContent = text;
-        hint.classList.add('visible');
-        
-        setTimeout(() => {
-            hint.classList.remove('visible');
-        }, 2000);
-    }
-    
-    // Destacar mensagem específica
-    function highlightMessage(messageElement) {
-        // Remover destaque anterior
-        document.querySelectorAll('.message.admin-highlight').forEach(msg => {
-            msg.classList.remove('admin-highlight');
-        });
-        
-        // Adicionar destaque à nova mensagem
-        if (messageElement) {
-            messageElement.classList.add('admin-highlight');
-            messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-    }
-    
-    // Inicializar elementos visuais quando o chat for carregado
-    function initializeAdminChatElements() {
-        initializeAdminScrollButton();
-        updateScrollProgress();
-        updateMessageCounter();
-        
-        // Mostrar dica inicial
-        setTimeout(() => {
-            showNavigationHint('Use Ctrl+↑↓ para navegar entre chats | Page ↑↓ para rolar mensagens');
-        }, 1000);
-    }
-    
-    // Função melhorada para adicionar mensagem à interface
-    function addMessageToInterface(messageData) {
-        console.log('📨 Adicionando mensagem à interface:', messageData);
-        
-        const messagesContainer = document.getElementById('chatMessages');
-        if (!messagesContainer) {
-            console.error('❌ Container de mensagens não encontrado');
-            return;
-        }
-        
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `message ${messageData.senderType === 'admin' ? 'sent' : 'received'}`;
-        
-        if (messageData.id) {
-            messageDiv.setAttribute('data-message-id', messageData.id);
-        }
-        
-        // Obter o conteúdo da mensagem (compatibilidade com diferentes formatos)
-        const messageContent = messageData.content || messageData.message || messageData.text || 'Mensagem vazia';
-        
-        const time = new Date(messageData.timestamp || Date.now()).toLocaleTimeString('pt-BR', {
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-        
-        if (messageData.senderType === 'admin') {
-            messageDiv.innerHTML = `
-                <div class="message-content">
-                    <div class="message-bubble">
-                        ${messageContent}
-                    </div>
-                    <div class="message-time">${time}</div>
-                </div>
-            `;
-        } else {
-            messageDiv.innerHTML = `
-                <div class="message-avatar">
-                    <i class="fas fa-user"></i>
-                </div>
-                <div class="message-content">
-                    <div class="message-bubble">
-                        ${messageContent}
-                    </div>
-                    <div class="message-time">${time}</div>
-                </div>
-            `;
-        }
-        
-        messagesContainer.appendChild(messageDiv);
-        
-        // Auto-scroll inteligente para admin
-        const scrollButton = document.getElementById('adminScrollButton');
-        const isAtBottom = !scrollButton || !scrollButton.classList.contains('visible');
-        
-        if (isAtBottom) {
-            setTimeout(() => {
-                messagesContainer.scrollTop = messagesContainer.scrollHeight;
-                if (typeof updateScrollProgress === 'function') updateScrollProgress();
-                if (typeof updateMessageCounter === 'function') updateMessageCounter();
-            }, 100);
-        }
-        
-        // Destacar nova mensagem brevemente
-        setTimeout(() => {
-            if (typeof highlightMessage === 'function') {
-                highlightMessage(messageDiv);
-            }
-        }, 200);
-        
-        console.log('✅ Mensagem adicionada à interface com sucesso');
-    }
-    
-    // Atualizar as funções existentes para usar os novos elementos visuais
-    document.addEventListener('DOMContentLoaded', function() {
-        // Inicializar elementos quando a seção de chat for acessada
-        const chatNavLink = document.querySelector('[data-section="chat"]');
-        if (chatNavLink) {
-            chatNavLink.addEventListener('click', function() {
-                setTimeout(() => {
-                    initializeAdminChatElements();
-                }, 500);
-            });
-        }
-    });
-
-    // ========== FUNÇÕES DE NAVEGAÇÃO ==========
+    // ========== FUNÇÕES BÁSICAS DO SISTEMA ==========
     
     // Função principal para trocar de seção
     function switchSection(sectionName) {
@@ -2020,9 +1428,6 @@
             if (sectionName === 'chat') {
                 setTimeout(() => {
                     loadAdminChats();
-                    if (window.showAdminNotification) {
-                        showAdminNotification('Seção de chat carregada - Use Ctrl+↑↓ para navegar');
-                    }
                 }, 100);
             }
         }
@@ -2240,79 +1645,6 @@
             }
         });
     }
-    
-    // Função para inicializar chat
-    function initializeChat() {
-        // Implementação básica do chat
-        console.log('Chat inicializado');
-    }
-    
-    // Função para inicializar modal de edição
-    function initializeEditTaskModal() {
-        // Implementação básica do modal de edição
-        console.log('Modal de edição inicializado');
-    }
-    
-    // Função para inicializar admin chat
-    function initializeAdminChat() {
-        // Implementação básica do admin chat
-        console.log('Admin chat inicializado');
-    }
-
-    // ========== FUNÇÕES DE DEBUG ==========
-    
-    // Função para testar se os cliques estão funcionando
-    window.testAdminClicks = function() {
-        console.log('🧪 Testando funcionalidade de cliques...');
-        
-        // Testar links de navegação
-        const navLinks = document.querySelectorAll('.nav-link');
-        console.log(`📊 Encontrados ${navLinks.length} links de navegação`);
-        
-        navLinks.forEach((link, index) => {
-            const section = link.getAttribute('data-section');
-            console.log(`Link ${index + 1}: ${section} - Tem event listener: ${getEventListeners ? 'Sim' : 'Não'})`);
-        });
-        
-        // Testar botões
-        const buttons = document.querySelectorAll('button');
-        console.log(`🔘 Encontrados ${buttons.length} botões na página`);
-        
-        // Testar se ChatManager está disponível
-        console.log(`💬 ChatManager disponível: ${window.ChatManager ? 'Sim' : 'Não'}`);
-        console.log(`💬 chatManager instância: ${window.chatManager ? 'Sim' : 'Não'}`);
-        
-        if (window.chatManager) {
-            console.log(`🔗 Chat Manager conectado: ${window.chatManager.isOnline ? window.chatManager.isOnline() : 'Método não disponível'}`);
-        }
-        
-        return {
-            navLinks: navLinks.length,
-            buttons: buttons.length,
-            chatManagerClass: !!window.ChatManager,
-            chatManagerInstance: !!window.chatManager
-        };
-    };
-    
-    // Função para forçar navegação manual
-    window.forceNavigate = function(section) {
-        console.log(`🔧 Forçando navegação para: ${section}`);
-        switchSection(section);
-    };
-    
-    // Função para testar mensagem manual
-    window.testMessage = function() {
-        const testMessage = {
-            content: 'Mensagem de teste do admin',
-            message: 'Mensagem de teste do admin', // Compatibilidade
-            senderType: 'student',
-            timestamp: new Date().toISOString(),
-            id: Date.now()
-        };
-        
-        console.log('🧪 Testando adição de mensagem:', testMessage);
-        addMessageToInterface(testMessage);
-    };
     </script>
 </body>
 </html> 
