@@ -1518,6 +1518,7 @@ h1 {
     overflow-y: auto;
     background: #f8f9fa;
     scroll-behavior: smooth;
+    overflow-anchor: none;
 }
 
 .message-date {
@@ -1550,6 +1551,7 @@ h1 {
     display: flex;
     margin-bottom: 0.3rem;
     gap: 0.5rem;
+    transition: opacity 0.3s ease;
 }
 
 .message.first-in-group {
@@ -1970,6 +1972,19 @@ h1 {
     .quick-response-btn {
         text-align: center;
     }
+
+    #scrollToBottomBtn {
+        bottom: 60px !important;
+        right: 15px !important;
+        width: 35px !important;
+        height: 35px !important;
+        font-size: 1rem !important;
+    }
+    
+    .chat-messages {
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+    }
 }
 
 @media (max-width: 480px) {
@@ -2059,4 +2074,71 @@ h1 {
 
 .chat-info-panel::-webkit-scrollbar-thumb:hover {
     background: #a8a8a8;
+}
+
+/* Estilos para destaque de mensagem */
+.message.highlight-message .message-bubble {
+    animation: highlightPulse 2s ease-in-out;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3);
+}
+
+@keyframes highlightPulse {
+    0%, 100% {
+        background-color: inherit;
+        transform: scale(1);
+    }
+    50% {
+        background-color: rgba(102, 126, 234, 0.1);
+        transform: scale(1.02);
+    }
+}
+
+/* Botão de scroll para baixo */
+#scrollToBottomBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    transition: all 0.3s ease;
+}
+
+#scrollToBottomBtn:hover {
+    background: #5a6fd8 !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.2) !important;
+}
+
+/* Indicador visual de scroll ativo */
+.chat-messages::-webkit-scrollbar-thumb:active {
+    background: #4c63d2;
+}
+
+/* Estilo para mensagens durante o scroll */
+.message {
+    transition: opacity 0.3s ease;
+}
+
+.message.scroll-fade {
+    opacity: 0.7;
+}
+
+/* Estilos para teclas de navegação */
+kbd {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    color: #495057;
+    font-family: 'Courier New', monospace;
+    font-size: 0.8rem;
+    font-weight: bold;
+    padding: 0.2rem 0.4rem;
+    white-space: nowrap;
+    display: inline-block;
+}
+
+kbd:hover {
+    background: #e9ecef;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
 } 

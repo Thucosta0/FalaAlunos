@@ -344,13 +344,136 @@ class RealTimeChatManager {
         // Atualizar interface automaticamente
         this.updateChatInterface(message);
         
-        // Auto-scroll para o fim das mensagens
+        // Auto-scroll para o fim com comportamento inteligente
+        this.smartAutoScroll(); // Auto-scroll inteligente
+    }
+
+    // Auto-scroll inteligente
+    smartAutoScroll(force = false) {
         setTimeout(() => {
             const messagesContainer = document.getElementById('chatMessages');
-            if (messagesContainer) {
-                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            if (!messagesContainer) return;
+
+            // Verificar se o usuário está perto do fim da conversa
+            const isNearBottom = messagesContainer.scrollHeight - messagesContainer.scrollTop - messagesContainer.clientHeight < 100;
+            
+            // Fazer scroll apenas se estiver perto do fim ou forçado
+            if (isNearBottom || force) {
+                messagesContainer.scrollTo({
+                    top: messagesContainer.scrollHeight,
+                    behavior: 'smooth'
+                });
             }
         }, 100);
+    }
+
+    // Scroll para mensagem específica
+    scrollToMessage(messageId) {
+        const messageElement = document.querySelector(`[data-message-id="${messageId}"]`);
+        if (messageElement) {
+            messageElement.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
+            });
+            
+            // Destacar mensagem brevemente
+            messageElement.classList.add('highlight-message');
+            setTimeout(() => {
+                messageElement.classList.remove('highlight-message');
+            }, 2000);
+        }
+    }
+
+    // Scroll para o topo das mensagens
+    scrollToTop() {
+        const messagesContainer = document.getElementById('chatMessages');
+        if (messagesContainer) {
+            messagesContainer.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+    }
+
+    // Scroll para o fim das mensagens
+    scrollToBottom() {
+        const messagesContainer = document.getElementById('chatMessages');
+        if (messagesContainer) {
+            messagesContainer.scrollTo({
+                top: messagesContainer.scrollHeight,
+                behavior: 'smooth'
+            });
+        }
+    }
+
+    // Navegação entre conversas
+    navigateToNextConversation() {
+        const conversations = document.querySelectorAll('.chat-category, .chat-item');
+        const activeConversation = document.querySelector('.chat-category.active, .chat-item.active');
+        
+        if (conversations.length === 0) return;
+        
+        let currentIndex = 0;
+        if (activeConversation) {
+            currentIndex = Array.from(conversations).indexOf(activeConversation);
+        }
+        
+        const nextIndex = (currentIndex + 1) % conversations.length;
+        const nextConversation = conversations[nextIndex];
+        
+        if (nextConversation) {
+            nextConversation.click();
+            this.scrollConversationIntoView(nextConversation);
+        }
+    }
+
+    navigateToPreviousConversation() {
+        const conversations = document.querySelectorAll('.chat-category, .chat-item');
+        const activeConversation = document.querySelector('.chat-category.active, .chat-item.active');
+        
+        if (conversations.length === 0) return;
+        
+        let currentIndex = 0;
+        if (activeConversation) {
+            currentIndex = Array.from(conversations).indexOf(activeConversation);
+        }
+        
+        const prevIndex = currentIndex === 0 ? conversations.length - 1 : currentIndex - 1;
+        const prevConversation = conversations[prevIndex];
+        
+        if (prevConversation) {
+            prevConversation.click();
+            this.scrollConversationIntoView(prevConversation);
+        }
+    }
+
+    // Scroll para mostrar conversa na sidebar
+    scrollConversationIntoView(conversationElement) {
+        const sidebar = conversationElement.closest('.chat-sidebar, .chat-list, .chat-categories');
+        if (sidebar && conversationElement) {
+            conversationElement.scrollIntoView({
+                behavior: 'smooth',
+                block: 'nearest'
+            });
+        }
+    }
+
+    // Detectar se precisa carregar mais mensagens (scroll infinito)
+    checkScrollForLoadMore() {
+        const messagesContainer = document.getElementById('chatMessages');
+        if (!messagesContainer) return;
+
+        // Se chegou ao topo, tentar carregar mensagens mais antigas
+        if (messagesContainer.scrollTop <= 100) {
+            this.loadOlderMessages();
+        }
+    }
+
+    // Carregar mensagens mais antigas (implementação futura)
+    async loadOlderMessages() {
+        // Implementar carregamento de mensagens mais antigas
+        console.log('🔄 Carregando mensagens mais antigas...');
+        // Esta função seria expandida para paginação de mensagens
     }
 
     // Salvar mensagem no localStorage
@@ -827,6 +950,11 @@ function addMessageToInterface(messageData) {
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${messageData.senderType === chatManager.userType ? 'sent' : 'received'}`;
     
+    // Adicionar ID da mensagem para navegação
+    if (messageData.id) {
+        messageDiv.setAttribute('data-message-id', messageData.id);
+    }
+    
     const time = new Date(messageData.timestamp).toLocaleTimeString('pt-BR', {
         hour: '2-digit',
         minute: '2-digit'
@@ -852,7 +980,14 @@ function addMessageToInterface(messageData) {
     }
     
     messagesContainer.appendChild(messageDiv);
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    
+    // Usar scroll inteligente
+    if (chatManager) {
+        chatManager.smartAutoScroll();
+    } else {
+        // Fallback para scroll simples
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
 }
 
 // Função para atualizar mensagens do chat (callback global)
@@ -930,10 +1065,14 @@ window.loadPersistedMessages = async function(category) {
                 });
             }
             
-            // Auto-scroll para o fim
-            setTimeout(() => {
-                messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            }, 100);
+            // Auto-scroll para o fim com comportamento inteligente
+            if (chatManager) {
+                chatManager.smartAutoScroll(true); // Forçar scroll ao carregar mensagens
+            } else {
+                setTimeout(() => {
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                }, 100);
+            }
             
             console.log(`✅ ${messages.length} mensagens carregadas na interface`);
         }
@@ -1033,5 +1172,189 @@ window.restoreChatState = async function() {
         
     } catch (error) {
         console.error('Erro ao restaurar estado do chat:', error);
+    }
+};
+
+// ========== NAVEGAÇÃO E CONTROLES DE SCROLL ==========
+
+// Adicionar listeners de eventos de teclado para navegação
+document.addEventListener('DOMContentLoaded', function() {
+    // Listener para navegação com teclado
+    document.addEventListener('keydown', function(event) {
+        // Verificar se não está digitando em um input
+        if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') return;
+        
+        if (!chatManager) return;
+        
+        switch(event.key) {
+            case 'ArrowUp':
+                if (event.ctrlKey) {
+                    // Ctrl + Up: Navegar para conversa anterior
+                    event.preventDefault();
+                    chatManager.navigateToPreviousConversation();
+                }
+                break;
+                
+            case 'ArrowDown':
+                if (event.ctrlKey) {
+                    // Ctrl + Down: Navegar para próxima conversa
+                    event.preventDefault();
+                    chatManager.navigateToNextConversation();
+                }
+                break;
+                
+            case 'Home':
+                if (event.ctrlKey) {
+                    // Ctrl + Home: Ir para o topo das mensagens
+                    event.preventDefault();
+                    chatManager.scrollToTop();
+                }
+                break;
+                
+            case 'End':
+                if (event.ctrlKey) {
+                    // Ctrl + End: Ir para o fim das mensagens
+                    event.preventDefault();
+                    chatManager.scrollToBottom();
+                }
+                break;
+                
+            case 'PageUp':
+                // Page Up: Scroll manual para cima nas mensagens
+                event.preventDefault();
+                scrollMessagesManually(-300);
+                break;
+                
+            case 'PageDown':
+                // Page Down: Scroll manual para baixo nas mensagens
+                event.preventDefault();
+                scrollMessagesManually(300);
+                break;
+        }
+    });
+    
+    // Adicionar listeners de scroll para detecção de rolagem
+    const setupScrollListeners = () => {
+        const messagesContainer = document.getElementById('chatMessages');
+        if (messagesContainer && chatManager) {
+            // Throttle para performance
+            let scrollTimeout = null;
+            
+            messagesContainer.addEventListener('scroll', function() {
+                if (scrollTimeout) clearTimeout(scrollTimeout);
+                
+                scrollTimeout = setTimeout(() => {
+                    chatManager.checkScrollForLoadMore();
+                }, 150);
+            });
+            
+            // Detectar quando usuário chega ao fim do scroll
+            messagesContainer.addEventListener('scroll', function() {
+                const isAtBottom = messagesContainer.scrollHeight - messagesContainer.scrollTop - messagesContainer.clientHeight < 50;
+                
+                // Mostrar/esconder botão "scroll to bottom"
+                toggleScrollToBottomButton(!isAtBottom);
+            });
+        }
+    };
+    
+    // Aguardar elementos estarem disponíveis
+    const waitForChatElements = setInterval(() => {
+        if (document.getElementById('chatMessages')) {
+            clearInterval(waitForChatElements);
+            setupScrollListeners();
+        }
+    }, 500);
+});
+
+// Função para scroll manual nas mensagens
+function scrollMessagesManually(deltaY) {
+    const messagesContainer = document.getElementById('chatMessages');
+    if (messagesContainer) {
+        messagesContainer.scrollBy({
+            top: deltaY,
+            behavior: 'smooth'
+        });
+    }
+}
+
+// Função para mostrar/esconder botão de scroll para baixo
+function toggleScrollToBottomButton(show) {
+    let scrollButton = document.getElementById('scrollToBottomBtn');
+    
+    if (show && !scrollButton) {
+        // Criar botão se não existir
+        scrollButton = document.createElement('button');
+        scrollButton.id = 'scrollToBottomBtn';
+        scrollButton.innerHTML = '<i class="fas fa-chevron-down"></i>';
+        scrollButton.style.cssText = `
+            position: absolute;
+            bottom: 80px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #667eea;
+            color: white;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1000;
+            transition: all 0.3s ease;
+            opacity: 0;
+            transform: translateY(10px);
+        `;
+        
+        scrollButton.addEventListener('click', function() {
+            if (chatManager) {
+                chatManager.scrollToBottom();
+            }
+        });
+        
+        const chatContainer = document.querySelector('.chat-main, .chat-container');
+        if (chatContainer) {
+            chatContainer.style.position = 'relative';
+            chatContainer.appendChild(scrollButton);
+        }
+    }
+    
+    if (scrollButton) {
+        if (show) {
+            scrollButton.style.opacity = '1';
+            scrollButton.style.transform = 'translateY(0)';
+        } else {
+            scrollButton.style.opacity = '0';
+            scrollButton.style.transform = 'translateY(10px)';
+        }
+    }
+}
+
+// Melhorar responsividade do scroll em dispositivos móveis
+if ('ontouchstart' in window) {
+    document.addEventListener('DOMContentLoaded', function() {
+        const messagesContainer = document.getElementById('chatMessages');
+        if (messagesContainer) {
+            // Melhorar scroll em dispositivos móveis
+            messagesContainer.style.webkitOverflowScrolling = 'touch';
+            messagesContainer.style.overscrollBehavior = 'contain';
+        }
+    });
+}
+
+// Função global para scroll inteligente (compatibilidade)
+window.smartScroll = function(force = false) {
+    if (chatManager) {
+        chatManager.smartAutoScroll(force);
+    }
+};
+
+// Função global para navegação entre conversas (compatibilidade)
+window.navigateConversations = function(direction) {
+    if (!chatManager) return;
+    
+    if (direction === 'next') {
+        chatManager.navigateToNextConversation();
+    } else if (direction === 'prev') {
+        chatManager.navigateToPreviousConversation();
     }
 }; 
