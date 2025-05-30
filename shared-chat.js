@@ -12,9 +12,7 @@ class RealTimeChatManager {
         this.messageListeners = [];
         
         // URL do servidor (configurar conforme ambiente)
-        this.serverUrl = window.location.hostname === 'localhost' ? 
-            'http://localhost:3000' : 
-            'https://fala-alunos-server.onrender.com'; // URL do deploy
+        this.serverUrl = this.getServerUrl();
         
         this.init();
     }
@@ -386,6 +384,29 @@ class RealTimeChatManager {
     // Definir categoria atual
     setCurrentCategory(category) {
         this.currentCategory = category;
+    }
+
+    // Determinar URL do servidor baseado no ambiente
+    getServerUrl() {
+        const hostname = window.location.hostname;
+        
+        // Ambiente local
+        if (hostname === 'localhost' || hostname === '127.0.0.1') {
+            return 'http://localhost:3000';
+        }
+        
+        // Netlify ou outros hosts de produção
+        if (hostname.includes('netlify.app') || hostname.includes('netlify.com')) {
+            return 'https://fala-alunos-server.onrender.com';
+        }
+        
+        // GitHub Pages
+        if (hostname.includes('github.io')) {
+            return 'https://fala-alunos-server.onrender.com';
+        }
+        
+        // Outros domínios personalizados
+        return 'https://fala-alunos-server.onrender.com';
     }
 }
 

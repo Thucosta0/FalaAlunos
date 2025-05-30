@@ -1,0 +1,7 @@
+# Redirecionar para login como página inicial
+/  /login.html  200
+
+# SPA redirects
+/admin/*  /index.html  200
+/student/*  /aluno.html  200
+/app/*  /login.html  200 
